@@ -1,0 +1,258 @@
+import type { ObjectSchema, SchemaToType, EnumSchema, ArraySchema } from "../base_schema_types";
+import { AddressSchema } from "../common/address";
+import { TrackingSchema } from "../common/tracking";
+import { DocumentSubTypeSchema } from "../common/document";
+import { checkSectionCompletion } from "../../utils/isComplete";
+
+// Enums
+export const GroupTypesIDSchema = {
+    type: "enum" as const,
+    label: "Group Type",
+    options: {
+        Branch: "Branch",
+        Admin: "Admin",
+        Company: "Company"
+    }
+} as const satisfies EnumSchema;
+
+export const BusinessTypesSchema = {
+    type: "enum" as const,
+    label: "Business Type",
+    options: {
+        residential_mortgage: "Residential Mortgage",
+        btl_mortgage: "BTL Mortgage",
+        equity_release: "Equity Release",
+        bridging: "Bridging",
+        protection_personal: "Protection Personal",
+        protection_business: "Protection Business",
+        household: "Household",
+        pap: "PAP",
+        pmi: "PMI"
+    }
+} as const satisfies EnumSchema;
+
+export const ListTypeSchema = {
+    type: "enum" as const,
+    label: "List Type",
+    options: {
+        TemplateVisibility: "Template Visibility"
+        // Add other list types as needed
+    }
+} as const satisfies EnumSchema;
+
+// Supporting types
+export const GroupListItemSchema = {
+    type: "object" as const,
+    fields: {
+        text_value: { type: "string" as const, label: "Text Value" },
+        // Add other fields as needed based on actual usage
+    }
+} as const satisfies ObjectSchema;
+
+export const GroupListSchema = {
+    type: "object" as const,
+    fields: {
+        list_type: { ...ListTypeSchema, label: "List Type" },
+        items: {
+            type: "array" as const,
+            itemSchema: GroupListItemSchema,
+            label: "Items"
+        } as const satisfies ArraySchema
+    }
+} as const satisfies ObjectSchema;
+
+export const GroupSettingSchema = {
+    type: "object" as const,
+    fields: {
+        key: { type: "string" as const, label: "Key" },
+        value: { type: "string" as const, label: "Value" }
+        // Add other fields as needed
+    }
+} as const satisfies ObjectSchema;
+
+/** Configuration for a specific task, allowing groups to enable/disable tasks per business type */
+export const GroupTaskConfigurationSchema = {
+    type: "object" as const,
+    label: "Task Configuration",
+    fields: {
+        task_document: {
+            ...DocumentSubTypeSchema,
+            label: "Task Document",
+        },
+        /** if true, the tasks is enabled for all default business types */
+        enabled_business_types_default: {
+            type: "boolean" as const,
+            label: "Enabled Business Types Default",
+        },
+        enabled_business_types: {
+            type: "array" as const,
+            label: "Enabled Business Types",
+            itemSchema: BusinessTypesSchema
+        } as const satisfies ArraySchema
+    }
+} as const satisfies ObjectSchema;
+
+/** Group configuration for section field requirements
+ * Only stores enabled field IDs - field definitions come from the master list
+ */
+export const GroupSectionFieldRequirementsSchema = {
+    type: "object" as const,
+    label: "Group Section Field Requirements",
+    fields: {
+        section_id: {
+            type: "string" as const,
+            label: "Section ID",
+            validation: { required: true }
+            // Section identifier (e.g., "fact_find.personal_details")
+        },
+        enabled_field_ids: {
+            type: "array" as const,
+            label: "Enabled Field IDs",
+            itemSchema: {
+                type: "string" as const,
+                label: "Field ID"
+            } as const
+            // Array of field_id strings that are enabled/required for this section
+            // Only enabled fields are stored - disabled fields are omitted
+        } as const satisfies ArraySchema
+    }
+} as const satisfies ObjectSchema;
+
+// Main Group schema
+export const GroupSchema = {
+    type: "object" as const,
+    fields: {
+        group_id: { type: "string" as const, label: "Group ID" },
+        entity_type: { type: "string" as const, label: "Entity Type" },
+        parent_group_id: { type: "string" as const, label: "Parent Group ID" },
+        reference: { type: "string" as const, label: "Reference" },
+        name: { type: "string" as const, label: "Name" },
+        linkage: {
+            type: "string" as const,
+            label: "Linkage",
+            // Linkage represents hierarchical path: "1" → root, "1.2" → child of 1, "1.2.7.9" → nested path
+        },
+        group_type_id: { ...GroupTypesIDSchema, label: "Group Type" },
+        account_id: { type: "number" as const, label: "Account ID" },
+        ...TrackingSchema.fields,
+        deleted: { type: "boolean" as const, label: "Deleted" },
+        lists: {
+            type: "array" as const,
+            itemSchema: GroupListSchema,
+            label: "Lists"
+        } as const satisfies ArraySchema,
+        settings: {
+            type: "array" as const,
+            itemSchema: GroupSettingSchema,
+            label: "Settings"
+        } as const satisfies ArraySchema,
+        task_configurations: {
+            type: "array" as const,
+            itemSchema: GroupTaskConfigurationSchema,
+            label: "Task Configurations"
+        } as const satisfies ArraySchema,
+        section_field_requirements: {
+            type: "array" as const,
+            label: "Section Field Requirements",
+            itemSchema: GroupSectionFieldRequirementsSchema
+        } as const satisfies ArraySchema,
+        address: { ...AddressSchema, label: "Address" },
+        tel: { type: "string" as const, label: "Telephone" },
+        email: { type: "string" as const, label: "Email" },
+        time_stamp: { type: "number" as const, label: "Time Stamp" } // long as number
+    }
+} as const satisfies ObjectSchema;
+
+export type Group = SchemaToType<typeof GroupSchema>;
+export type GroupTypesID = SchemaToType<typeof GroupTypesIDSchema>;
+export type BusinessTypeID = SchemaToType<typeof BusinessTypesSchema>;
+export type ListType = SchemaToType<typeof ListTypeSchema>;
+export type GroupList = SchemaToType<typeof GroupListSchema>;
+export type GroupListItem = SchemaToType<typeof GroupListItemSchema>;
+export type GroupSetting = SchemaToType<typeof GroupSettingSchema>;
+export type GroupTaskConfiguration = SchemaToType<typeof GroupTaskConfigurationSchema>;
+export type GroupSectionFieldRequirements = SchemaToType<typeof GroupSectionFieldRequirementsSchema>;
+
+// Example test group instance
+let exampleGroup: Group = {
+    group_id: "group-123",
+    entity_type: "Organization",
+    parent_group_id: "group-001",
+    reference: "REF-001",
+    name: "Example Branch Office",
+    linkage: "1.2.3",
+    group_type_id: "Branch",
+    account_id: 1001,
+    created_by: "user-001",
+    created_at: "2024-01-15T10:00:00Z",
+    updated_by: "user-001",
+    updated_at: "2024-01-20T14:30:00Z",
+    deleted: false,
+    lists: [
+        {
+            list_type: "TemplateVisibility",
+            items: [
+                { text_value: "Template 1" },
+                { text_value: "Template 2" }
+            ]
+        }
+    ],
+    settings: [
+        { key: "theme", value: "dark" },
+        { key: "language", value: "en" }
+    ],
+    address: {
+        is_non_uk_address: false,
+        house_number: "123",
+        street: "Main Street",
+        town: "London",
+        county: "Greater London",
+        postcode: "SW1A 1AA",
+        uk_country_key: "england",
+        formatted_address: "123 Main Street, London, Greater London, SW1A 1AA"
+    },
+    tel: "+44 20 1234 5678",
+    email: "branch@example.com",
+    time_stamp: Date.now(),
+    task_configurations: [
+        {
+            task_document: {
+                category: "firm_disclosure",
+                sub_type: "disclosure"
+            },
+            enabled_business_types: [
+                "residential_mortgage",
+                "btl_mortgage"
+            ]
+        },
+        {
+            task_document: {
+                category: "client_documentation",
+                sub_type: "proof_of_income"
+            },
+            enabled_business_types_default: true,
+            enabled_business_types: [
+                "residential_mortgage",
+                "btl_mortgage"
+            ]
+        }
+    ],
+    section_field_requirements: [
+        {
+            section_id: "fact_find.personal_details",
+            enabled_field_ids: ["first_name", "date_of_birth"]
+        },
+        {
+            section_id: "fact_find.address_details",
+            enabled_field_ids: [
+                "current_address_street",
+                "current_address_town",
+                "current_address_postcode",
+                "residency_start_date",
+                "occupancy_type"
+            ]
+        }
+    ]
+};
+
+
