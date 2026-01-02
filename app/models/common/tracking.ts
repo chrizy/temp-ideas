@@ -1,6 +1,16 @@
 /** use to extend other schemas with tracking metadata */
 export const TrackingSchema = {
     fields: {
+        /** Database auto-generated ID - not required on create, always present on read */
+        id: {
+            type: "string" as const,
+        },
+        /** Tenant/Account ID - identifies which account owns this record */
+        account_id: {
+            type: "number" as const,
+            label: "Account ID",
+            validation: { required: true }
+        },
         updated_by: {
             type: "string" as const,
             label: "Last Updated By",

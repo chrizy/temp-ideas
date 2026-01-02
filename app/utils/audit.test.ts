@@ -6,7 +6,7 @@ describe("generateAuditDiff - Group Schema", () => {
     // Helper to create a minimal group
     function createGroup(overrides: Partial<Group> = {}): Group {
         return {
-            group_id: "group-123",
+            id: "group-123",
             entity_type: "Organization",
             parent_group_id: "group-001",
             reference: "REF-001",

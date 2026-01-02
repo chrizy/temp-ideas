@@ -474,10 +474,7 @@ const ClientBaseFields = {
         label: "Group ID",
         validation: { required: true }
     },
-    import: {
-        ...ImportedDataSchema,
-
-    }
+    import: { ...ImportedDataSchema }
 } as const;
 
 // Individual Client Variant
@@ -668,7 +665,10 @@ const IndividualClientVariant = {
         national_insurance_number: {
             type: "string" as const,
             label: "National Insurance Number",
-            validation: { maxLength: 100 }
+            validation: {
+                maxLength: 13, // AB 12 34 56 C (with spaces)
+                pattern: /^[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}$/i
+            }
         },
         state_pension_age: {
             type: "number" as const,
@@ -778,9 +778,13 @@ const CompanyClientVariant = {
             label: "Business Start Date"
         },
         companies_house_number: {
-            type: "number" as const,
+            type: "string" as const,
             label: "Companies House Number",
-            validation: { min: 10000000, max: 99999999 }
+            validation: {
+                pattern: /^[0-9]{8}$/,
+                maxLength: 8,
+                minLength: 8
+            }
         },
         business_sic_code_keys: {
             type: "array" as const,
@@ -850,8 +854,8 @@ export const ClientSchema = {
         if (client.client_type === "company") {
             return client.business_name || "Unnamed Company";
         } else {
-            const firstName = client.firstName || "";
-            const lastName = client.lastName || "";
+            const firstName = client.first_name || "";
+            const lastName = client.last_name || "";
             const name = `${firstName} ${lastName}`.trim();
             return name || "Unnamed Client";
         }

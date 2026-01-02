@@ -10,16 +10,17 @@ describe("Section Is Complete Validation", () => {
     enabledFieldIds: string[]
   ): Group {
     return {
-      group_id: "test-group",
+      id: 1,
       entity_type: "Organization",
       name: "Test Group",
       group_type_id: "Branch",
       account_id: 1,
+      version: 1,
       created_by: "test",
       created_at: "2024-01-01T00:00:00Z",
       updated_by: "test",
       updated_at: "2024-01-01T00:00:00Z",
-      deleted: false,
+      is_deleted: false,
       section_field_requirements: [
         {
           section_id: sectionId,
@@ -35,6 +36,10 @@ describe("Section Is Complete Validation", () => {
         client_type: "individual",
         version: 1,
         first_name: "John",
+        last_name: "Doe",
+        primary_advisor_id: "AD-123",
+        group_id: "GROUP-123",
+        account_id: 1,
         dob: "1990-01-01",
         addresses: [],
       };
@@ -313,6 +318,10 @@ describe("Section Is Complete Validation", () => {
         client_type: "individual",
         version: 1,
         first_name: "John",
+        last_name: "Doe",
+        primary_advisor_id: "AD-123",
+        group_id: "GROUP-123",
+        account_id: 1,
         addresses: [
           {
             client_address_id: "addr-1",
@@ -496,7 +505,7 @@ describe("Section Is Complete Validation", () => {
       };
 
       const group: Group = {
-        group_id: "test-group",
+        id: 1,
         entity_type: "Organization",
         name: "Test Group",
         group_type_id: "Branch",
@@ -505,8 +514,9 @@ describe("Section Is Complete Validation", () => {
         created_at: "2024-01-01T00:00:00Z",
         updated_by: "test",
         updated_at: "2024-01-01T00:00:00Z",
-        deleted: false,
+        is_deleted: false,
         section_field_requirements: [],
+        version: 1,
       } as Group;
 
       const result = checkSectionCompletion(
