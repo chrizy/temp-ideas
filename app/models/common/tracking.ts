@@ -1,9 +1,9 @@
 /** use to extend other schemas with tracking metadata */
 export const TrackingSchema = {
     fields: {
-        /** Database auto-generated ID - not required on create, always present on read */
+        /** Database auto-generated ID - always a number, always exists in DB */
         id: {
-            type: "string" as const,
+            type: "number" as const,
         },
         /** Tenant/Account ID - identifies which account owns this record */
         account_id: {
@@ -54,7 +54,6 @@ export const TrackingSchema = {
         is_deleted: {
             type: "boolean" as const,
             label: "Is Deleted",
-            validation: { required: false }
         },
         deleted_by_user_type_key: {
             type: "string" as const,

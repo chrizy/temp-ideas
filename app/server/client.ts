@@ -1,11 +1,12 @@
 import { ClientSchema, type Client } from "~/models/client/client";
-import { validateObject, type ValidationResult } from "~/utils/validation";
-import { processUpdate } from "./update-utils";
+import { type ValidationResult } from "~/utils/validation";
+import { processUpdate, readEntity, processCreate } from "./db-utils";
 
 /**
  * User session information for database operations
  */
 export type UserSession = {
+    user_type_key: "user" | "introducer" | "client";
     user_id: string;
     account_id: number;
     db_shard_id: string;
@@ -18,7 +19,7 @@ export type UserSession = {
 export class ClientDB {
     constructor(
         private readonly db: D1Database,
-        private readonly accountId: string
+        private readonly accountId: number
     ) { }
 
     /**
@@ -28,65 +29,56 @@ export class ClientDB {
      * @returns The created client with generated ID and tracking fields
      */
     async create(
-        clientData: Omit<Client, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version">,
-        userId: string
-    ): Promise<Client> {
-        // TODO: Implement create logic
-        // 1. Validate clientData against ClientSchema
-        // 2. Generate unique ID (e.g., using crypto.randomUUID())
-        // 3. Set tracking fields (created_at, updated_at, created_by, updated_by, version = 1)
-        // 4. Insert into clients table: INSERT INTO clients (id, account_id, body, updated_at, _version) VALUES (?, ?, ?, ?, ?)
-        // 5. Return created client with id
+        clientData: Omit<Client, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id" | "is_deleted">,
+        userSession: UserSession
+    ): Promise<{ success: true; client: Client } | { success: false; validation: ValidationResult }> {
+        const result = await processCreate(
+            this.db,
+            "clients",
+            clientData as any,
+            userSession,
+            ClientSchema,
+            "Client"
+        );
 
-        const validationResult = validateObject(ClientSchema, clientData);
-        if (!validationResult.isValid) {
-            throw new Error(
-                `Validation failed: ${validationResult.errors.map(e => `${e.fieldLabel || e.path.join(".")}: ${e.message}`).join(", ")}`
-            );
-        }
-
-        throw new Error("Not implemented");
+        return result.success
+            ? { success: true as const, client: result.entity }
+            : result;
     }
 
     /**
      * Get a client by ID
-     * @param clientId - The client ID to retrieve
+     * @param clientId - The client ID to retrieve (always a number)
      * @returns The client record or null if not found
      */
-    async get(clientId: string): Promise<Client | null> {
-        // TODO: Implement get logic
-        // 1. Query: SELECT body FROM clients WHERE id = ? AND account_id = ?
-        // 2. Parse JSON body
-        // 3. Return client with id or null
-
-
-
-        throw new Error("Not implemented");
+    async get(clientId: number): Promise<Client | null> {
+        const result = await readEntity<Client>(this.db, "clients", clientId, this.accountId);
+        return result?.entity ?? null;
     }
 
     /**
      * Update an existing client record
      * Validates the data and generates audit trail of changes
-     * @param clientId - The client ID to update
-     * @param clientData - The updated client data (partial, should contain id and version from existing client)
+     * @param clientData - The updated client data (must contain id and version from existing client)
      * @param userSession - User session containing user_id, account_id, and db_shard_id
      * @returns Success with updated client, or validation errors in standardized format
      * @throws Error if client not found or database operation fails
      */
     async update(
-        clientId: string,
-        clientData: Client & { id?: string; version?: number },
+        clientData: Client & { id: number; version: number; account_id: number },
         userSession: UserSession
     ): Promise<{ success: true; client: Client } | { success: false; validation: ValidationResult }> {
-        const existingClient = await this.get(clientId);
-        const result = await processUpdate(this.db, existingClient, clientId, clientData, userSession, ClientSchema, "Client");
+        const result = await processUpdate(this.db, "clients", clientData, userSession, ClientSchema, "Client");
 
-        if (result.success) {
-            return {
-                success: true,
-                client: result.entity
-            };
-        }
-        return result;
+        // TODO: add permissions check,  
+        // does user have write access to this client?
+        // linkage check
+        // notification to user that the client has been updated
+        // audit
+        // maybe cache permission check in KV. if user has write access to this client, then cache the result in KV.
+
+        return result.success
+            ? { success: true as const, client: result.entity }
+            : result;
     }
 }

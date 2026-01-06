@@ -1,7 +1,7 @@
 import { UserSchema, type User } from "~/models/admin/user";
 import { GroupSchema, type Group } from "~/models/admin/group";
-import { validateObject, type ValidationResult } from "~/utils/validation";
-import { processUpdate } from "./update-utils";
+import { type ValidationResult } from "~/utils/validation";
+import { processUpdate, readEntity, processCreate } from "./db-utils";
 import type { UserSession } from "./client";
 
 /**
@@ -11,7 +11,7 @@ import type { UserSession } from "./client";
 export class UserDB {
     constructor(
         private readonly db: D1Database,
-        private readonly accountId: string
+        private readonly accountId: number
     ) { }
 
     /**
@@ -21,24 +21,21 @@ export class UserDB {
      * @returns The created user with generated ID and tracking fields
      */
     async create(
-        userData: Omit<User, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version">,
-        userId: string
-    ): Promise<User> {
-        // TODO: Implement create logic
-        // 1. Validate userData against UserSchema
-        // 2. Generate unique ID (auto-increment from database)
-        // 3. Set tracking fields (created_at, updated_at, created_by, updated_by, version = 1)
-        // 4. Insert into users table: INSERT INTO users (id, account_id, body, updated_at, _version) VALUES (?, ?, ?, ?, ?)
-        // 5. Return created user with id
+        userData: Omit<User, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id" | "is_deleted">,
+        userSession: UserSession
+    ): Promise<{ success: true; user: User } | { success: false; validation: ValidationResult }> {
+        const result = await processCreate(
+            this.db,
+            "users",
+            userData as any,
+            userSession,
+            UserSchema,
+            "User"
+        );
 
-        const validationResult = validateObject(UserSchema, userData);
-        if (!validationResult.isValid) {
-            throw new Error(
-                `Validation failed: ${validationResult.errors.map(e => `${e.fieldLabel || e.path.join(".")}: ${e.message}`).join(", ")}`
-            );
-        }
-
-        throw new Error("Not implemented");
+        return result.success
+            ? { success: true as const, user: result.entity }
+            : result;
     }
 
     /**
@@ -47,12 +44,8 @@ export class UserDB {
      * @returns The user record or null if not found
      */
     async get(userId: number): Promise<User | null> {
-        // TODO: Implement get logic
-        // 1. Query: SELECT body FROM users WHERE id = ? AND account_id = ?
-        // 2. Parse JSON body
-        // 3. Return user with id or null
-
-        throw new Error("Not implemented");
+        const result = await readEntity<User>(this.db, "users", userId, this.accountId);
+        return result?.entity ?? null;
     }
 
     /**
@@ -69,16 +62,13 @@ export class UserDB {
         userData: User & { id?: number; version?: number },
         userSession: UserSession
     ): Promise<{ success: true; user: User } | { success: false; validation: ValidationResult }> {
-        const existingUser = await this.get(userId);
-        const result = await processUpdate(this.db, existingUser, userId, userData, userSession, UserSchema, "User");
+        // Merge id directly into existing object to avoid unnecessary spread
+        const userDataWithId = Object.assign(userData, { id: userId }) as User & { id: number; version: number; account_id: number };
+        const result = await processUpdate(this.db, "users", userDataWithId, userSession, UserSchema, "User");
 
-        if (result.success) {
-            return {
-                success: true,
-                user: result.entity
-            };
-        }
-        return result;
+        return result.success
+            ? { success: true as const, user: result.entity }
+            : result;
     }
 }
 
@@ -89,7 +79,7 @@ export class UserDB {
 export class GroupDB {
     constructor(
         private readonly db: D1Database,
-        private readonly accountId: string
+        private readonly accountId: number
     ) { }
 
     /**
@@ -99,24 +89,21 @@ export class GroupDB {
      * @returns The created group with generated ID and tracking fields
      */
     async create(
-        groupData: Omit<Group, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version">,
-        userId: string
-    ): Promise<Group> {
-        // TODO: Implement create logic
-        // 1. Validate groupData against GroupSchema
-        // 2. Generate unique ID (auto-increment from database)
-        // 3. Set tracking fields (created_at, updated_at, created_by, updated_by, version = 1)
-        // 4. Insert into groups table: INSERT INTO groups (id, account_id, body, updated_at, _version) VALUES (?, ?, ?, ?, ?)
-        // 5. Return created group with id
+        groupData: Omit<Group, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id">,
+        userSession: UserSession
+    ): Promise<{ success: true; group: Group } | { success: false; validation: ValidationResult }> {
+        const result = await processCreate(
+            this.db,
+            "groups",
+            groupData as any,
+            userSession,
+            GroupSchema,
+            "Group"
+        );
 
-        const validationResult = validateObject(GroupSchema, groupData);
-        if (!validationResult.isValid) {
-            throw new Error(
-                `Validation failed: ${validationResult.errors.map(e => `${e.fieldLabel || e.path.join(".")}: ${e.message}`).join(", ")}`
-            );
-        }
-
-        throw new Error("Not implemented");
+        return result.success
+            ? { success: true as const, group: result.entity }
+            : result;
     }
 
     /**
@@ -125,12 +112,8 @@ export class GroupDB {
      * @returns The group record or null if not found
      */
     async get(groupId: number): Promise<Group | null> {
-        // TODO: Implement get logic
-        // 1. Query: SELECT body FROM groups WHERE id = ? AND account_id = ?
-        // 2. Parse JSON body
-        // 3. Return group with id or null
-
-        throw new Error("Not implemented");
+        const result = await readEntity<Group>(this.db, "groups", groupId, this.accountId);
+        return result?.entity ?? null;
     }
 
     /**
@@ -147,15 +130,12 @@ export class GroupDB {
         groupData: Group & { id?: number; version?: number },
         userSession: UserSession
     ): Promise<{ success: true; group: Group } | { success: false; validation: ValidationResult }> {
-        const existingGroup = await this.get(groupId);
-        const result = await processUpdate(this.db, existingGroup, groupId, groupData, userSession, GroupSchema, "Group");
+        // Merge id directly into existing object to avoid unnecessary spread
+        const groupDataWithId = Object.assign(groupData, { id: groupId }) as Group & { id: number; version: number; account_id: number };
+        const result = await processUpdate(this.db, "groups", groupDataWithId, userSession, GroupSchema, "Group");
 
-        if (result.success) {
-            return {
-                success: true,
-                group: result.entity
-            };
-        }
-        return result;
+        return result.success
+            ? { success: true as const, group: result.entity }
+            : result;
     }
 }
