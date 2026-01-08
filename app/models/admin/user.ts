@@ -19,10 +19,10 @@ export const LoginDetailSchema = {
     type: "object" as const,
     fields: {
         enabled: { type: "boolean" as const, label: "Enabled" },
-        user_name: {
+        email: {
             type: "string" as const,
-            label: "User Name",
-            validation: { required: true }
+            label: "Email",
+            validation: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }
         },
         /** Password is hashed using bcrypt */
         password: {

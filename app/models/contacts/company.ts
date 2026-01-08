@@ -11,7 +11,11 @@ const PhoneNumberAndDepartmentSchema = {
         phone_number: {
             type: "string" as const,
             label: "Phone Number",
-            validation: { maxLength: 100 }
+            validation: {
+                maxLength: 50,
+                minLength: 1
+                // Note: Phone format validation can be added via custom validator if stricter validation is needed
+            }
         },
         department: {
             type: "string" as const,
@@ -29,7 +33,12 @@ const EmailAndDepartmentSchema = {
         email: {
             type: "string" as const,
             label: "Email",
-            validation: { maxLength: 100 }
+            validation: {
+                maxLength: 254, // RFC 5321 maximum email length
+                minLength: 3, // Minimum: a@b
+                // Basic email pattern (RFC 5322 compliant)
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            }
         },
         department: {
             type: "string" as const,
@@ -84,11 +93,16 @@ const CompanyIntroducerRequestSchema = {
         requested_by_user_id: {
             type: "string" as const,
             label: "Requested By User",
-            validation: { maxLength: 100 }
+            validation: {
+                required: true,
+                maxLength: 100,
+                minLength: 1
+            }
         },
         requested_at: {
             type: "datetime" as const,
-            label: "Requested At"
+            label: "Requested At",
+            validation: { required: true }
         },
         note: {
             type: "string" as const,
@@ -131,6 +145,42 @@ const CompanyIntroducerSchema = {
     }
 } as const satisfies ObjectSchema;
 
+// Company Branch Schema
+const CompanyBranchSchema = {
+    type: "object" as const,
+    label: "Company Branch",
+    fields: {
+        branch_id: {
+            type: "string" as const,
+            label: "Branch ID",
+            validation: {
+                required: true,
+                minLength: 1,
+                maxLength: 100
+            }
+        },
+        business_branch_name: {
+            type: "string" as const,
+            label: "Business Branch Name",
+            validation: { maxLength: 100 }
+        },
+        address: {
+            ...AddressSchema,
+            label: "Address"
+        },
+        phones: {
+            type: "array" as const,
+            itemSchema: PhoneNumberAndDepartmentSchema,
+            label: "Phones"
+        },
+        emails: {
+            type: "array" as const,
+            itemSchema: EmailAndDepartmentSchema,
+            label: "Emails"
+        }
+    }
+} as const satisfies ObjectSchema;
+
 // Main Company Schema
 export const CompanySchema = {
     type: "object" as const,
@@ -140,7 +190,11 @@ export const CompanySchema = {
         name: {
             type: "string" as const,
             label: "Company Name",
-            validation: { maxLength: 100 }
+            validation: {
+                required: true,
+                maxLength: 200,
+                minLength: 1
+            }
         },
         address: {
             ...AddressSchema,
@@ -162,14 +216,14 @@ export const CompanySchema = {
                 ifa: "IFA"
             }
         },
-        is_head_office: {
-            type: "boolean" as const,
-            label: "Is Company Head Office"
-        },
         website_url: {
             type: "string" as const,
             label: "Website URL",
-            validation: { maxLength: 100 }
+            validation: {
+                maxLength: 2048, // Common URL max length
+                // Basic URL pattern (allows http/https/ftp and common URL characters)
+                pattern: /^https?:\/\/.+/i
+            }
         },
         phones: {
             type: "array" as const,
@@ -189,6 +243,11 @@ export const CompanySchema = {
             ...CompanyIntroducerSchema,
             label: "Introducer"
         },
+        branches: {
+            type: "array" as const,
+            itemSchema: CompanyBranchSchema,
+            label: "Branches"
+        },
         import: { ...ImportedDataSchema }
     }
 } as const satisfies ObjectSchema;
@@ -197,5 +256,6 @@ export type Company = SchemaToType<typeof CompanySchema>;
 export type CompanyReferralPartner = SchemaToType<typeof CompanyReferralPartnerSchema>;
 export type CompanyIntroducer = SchemaToType<typeof CompanyIntroducerSchema>;
 export type CompanyIntroducerRequest = SchemaToType<typeof CompanyIntroducerRequestSchema>;
+export type CompanyBranch = SchemaToType<typeof CompanyBranchSchema>;
 export type PhoneNumberAndDepartment = SchemaToType<typeof PhoneNumberAndDepartmentSchema>;
 export type EmailAndDepartment = SchemaToType<typeof EmailAndDepartmentSchema>;

@@ -3,6 +3,71 @@ import { AddressSchema } from "../common/address";
 import { ImportedDataSchema } from "../common/import";
 import { TrackingSchema } from "../common/tracking";
 
+// Shared nationality options list (British first)
+const NationalityOptions = {
+    british: "British",
+    irish: "Irish",
+    american: "American",
+    canadian: "Canadian",
+    australian: "Australian",
+    new_zealand: "New Zealand",
+    south_african: "South African",
+    french: "French",
+    german: "German",
+    italian: "Italian",
+    spanish: "Spanish",
+    portuguese: "Portuguese",
+    dutch: "Dutch",
+    belgian: "Belgian",
+    swiss: "Swiss",
+    austrian: "Austrian",
+    swedish: "Swedish",
+    norwegian: "Norwegian",
+    danish: "Danish",
+    finnish: "Finnish",
+    polish: "Polish",
+    czech: "Czech",
+    hungarian: "Hungarian",
+    romanian: "Romanian",
+    bulgarian: "Bulgarian",
+    greek: "Greek",
+    turkish: "Turkish",
+    russian: "Russian",
+    ukrainian: "Ukrainian",
+    indian: "Indian",
+    pakistani: "Pakistani",
+    bangladeshi: "Bangladeshi",
+    chinese: "Chinese",
+    japanese: "Japanese",
+    korean: "Korean",
+    thai: "Thai",
+    vietnamese: "Vietnamese",
+    filipino: "Filipino",
+    indonesian: "Indonesian",
+    malaysian: "Malaysian",
+    singaporean: "Singaporean",
+    brazilian: "Brazilian",
+    argentinian: "Argentinian",
+    mexican: "Mexican",
+    chilean: "Chilean",
+    colombian: "Colombian",
+    peruvian: "Peruvian",
+    egyptian: "Egyptian",
+    nigerian: "Nigerian",
+    kenyan: "Kenyan",
+    ghanaian: "Ghanaian",
+    israeli: "Israeli",
+    lebanese: "Lebanese",
+    jordanian: "Jordanian",
+    saudi_arabian: "Saudi Arabian",
+    emirati: "Emirati",
+    qatari: "Qatari",
+    kuwaiti: "Kuwaiti",
+    bahraini: "Bahraini",
+    omani: "Omani",
+    other: "Other"
+} as const;
+
 // Base fields shared by both variants
 const ClientAddressBaseFields = {
     client_address_id: {
@@ -485,36 +550,6 @@ const IndividualClientVariant = {
     fields: {
         ...TrackingSchema.fields,
         ...ClientBaseFields,
-        first_name: {
-            type: "string" as const,
-            label: "First Name",
-            validation: { required: true, maxLength: 200, minLength: 2 },
-        },
-        middle_names: {
-            type: "string" as const,
-            label: "Middle Names",
-            validation: { maxLength: 100, minLength: 1 }
-        },
-        last_name: {
-            type: "string" as const,
-            label: "Last Name",
-            validation: { required: true, maxLength: 200, minLength: 2 },
-        },
-        sex: {
-            type: "enum" as const,
-            label: "Sex",
-            options: {
-                male: "Male",
-                female: "Female",
-                other: "Other",
-                prefer_not_to_say: "Prefer Not to Say"
-            },
-        },
-        dob: {
-            type: "date" as const,
-            label: "Date of Birth",
-            validation: { minDate: "1900-01-01" }
-        },
         title: {
             type: "enum" as const,
             label: "Title",
@@ -533,36 +568,56 @@ const IndividualClientVariant = {
                 prof: "Prof"
             }
         },
+        first_name: {
+            type: "string" as const,
+            label: "First name",
+            validation: { required: true, maxLength: 200, minLength: 2 },
+        },
+        middle_names: {
+            type: "string" as const,
+            label: "Middle names",
+            validation: { maxLength: 100, minLength: 1 }
+        },
+        last_name: {
+            type: "string" as const,
+            label: "Last name",
+            validation: { required: true, maxLength: 200, minLength: 2 },
+        },
+        dob: {
+            type: "date" as const,
+            label: "Date of birth",
+            validation: { minDate: "1900-01-01" }
+        },
         salutation: {
             type: "string" as const,
             label: "Salutation",
             validation: { maxLength: 100 }
         },
-        has_any_name_changed: {
+        has_name_changed: {
             type: "boolean" as const,
-            label: "Has Surname Changed"
+            label: "Has name ever changed"
         },
         previous_first_name: {
             type: "string" as const,
-            label: "Previous First Name",
+            label: "Previous first name",
             validation: { maxLength: 100, minLength: 1 }
         },
         previous_middle_names: {
             type: "string" as const,
-            label: "Previous Middle Name",
+            label: "Previous middle name",
             validation: { maxLength: 100, minLength: 1 }
         },
         previous_last_name: {
             type: "string" as const,
-            label: "Previous Surname",
+            label: "Previous last name",
             validation: { maxLength: 100, minLength: 1 }
         },
         name_changed_date: {
             type: "date" as const,
-            label: "Date of Change of Previous Surname",
+            label: "Date of name change",
             validation: { minDate: "1900-01-01" }
         },
-        marital_status_key: {
+        marital_status: {
             type: "enum" as const,
             label: "Marital Status",
             options: {
@@ -575,7 +630,7 @@ const IndividualClientVariant = {
                 widowed: "Widowed"
             }
         },
-        citizen_status_key: {
+        citizen_status: {
             type: "enum" as const,
             label: "Citizenship Status",
             options: {
@@ -587,29 +642,8 @@ const IndividualClientVariant = {
                 foreign_national: "Foreign National"
             }
         },
-        has_religious_beliefs: {
-            type: "boolean" as const,
-            label: "Does Client Have Religious Beliefs?"
-        },
-        religious_belief_notes: {
-            type: "string" as const,
-            label: "Notes on Religious Beliefs",
-            validation: { maxLength: 1000 }
-        },
-        has_ethical_beliefs: {
-            type: "boolean" as const,
-            label: "Does Client Have Ethical Beliefs?"
-        },
-        ethical_belief_notes: {
-            type: "string" as const,
-            label: "Notes on Ethical Beliefs",
-            validation: { maxLength: 1000 }
-        },
-        has_will: {
-            type: "boolean" as const,
-            label: "Does Client Have a Will?"
-        },
-        nicotine_use_key: {
+
+        nicotine_use: {
             type: "enum" as const,
             label: "Has the Client Ever Smoked",
             options: {
@@ -619,7 +653,7 @@ const IndividualClientVariant = {
                 never_smoked_or_used_nicotine_products: "Never Smoked or Used Nicotine Products"
             }
         },
-        nicotine_product_type_key: {
+        nicotine_product_type: {
             type: "enum" as const,
             label: "Nicotine Product Type",
             options: {
@@ -646,7 +680,17 @@ const IndividualClientVariant = {
             label: "Nicotine Use Quit Date",
             validation: { minDate: "1900-01-01" }
         },
-        gender_identity_key: {
+        sex: {
+            type: "enum" as const,
+            label: "Sex",
+            options: {
+                male: "Male",
+                female: "Female",
+                other: "Other",
+                prefer_not_to_say: "Prefer Not to Say"
+            },
+        },
+        gender_identity: {
             type: "enum" as const,
             label: "Gender Identity",
             options: {
@@ -680,9 +724,14 @@ const IndividualClientVariant = {
             label: "Retirement Age",
             validation: { min: 0, max: 120 }
         },
-        intended_retirement_age_past_state_plausibility_key: {
+        has_will: {
+            type: "boolean" as const,
+            label: "Does Client Have a Will"
+        },
+        /** The client has recorded an intended retirement age that exceeds the state pension age. Please detail information supporting the plausibility of this scenario. */
+        intended_retirement_age_past_state_plausibility: {
             type: "enum" as const,
-            label: "Intended Retirement Age Past State Plausibility",
+            label: "Plausibility reason",
             options: {
                 will_change_to_non_manual_role: "Will Change to Non-Manual Role",
                 self_employed_intends_continue_working: "Self-Employed Intends Continue Working",
@@ -694,30 +743,22 @@ const IndividualClientVariant = {
         },
         intended_retirement_age_past_state_plausibility_note: {
             type: "string" as const,
-            label: "Intended Retirement Age Past State Plausibility Note",
+            label: "Plausibility reason note",
             validation: { maxLength: 1000 }
         },
-        nationality_key: {
-            type: "string" as const,
+        nationality: {
+            type: "enum" as const,
             label: "Nationality",
-            validation: { maxLength: 100 }
+            options: NationalityOptions
         },
         has_dual_nationality: {
             type: "boolean" as const,
             label: "Has Dual Nationality"
         },
-        nationality_second_key: {
-            type: "string" as const,
+        nationality_secondary: {
+            type: "enum" as const,
             label: "Second Nationality",
-            validation: { maxLength: 100 }
-        },
-        personal_last_updated_by: {
-            type: "string" as const,
-            label: "Personal Details Last Updated By"
-        },
-        personal_last_updated_at: {
-            type: "datetime" as const,
-            label: "Personal Details Last Updated At"
+            options: NationalityOptions
         },
         is_deceased: {
             type: "boolean" as const,
@@ -750,12 +791,12 @@ const CompanyClientVariant = {
             label: "Business Name",
             validation: { required: true, maxLength: 100 }
         },
-        business_type_key: {
+        business_type: {
             type: "string" as const,
             label: "Business Type Key",
             validation: { maxLength: 100 }
         },
-        business_legal_status_key: {
+        business_legal_status: {
             type: "enum" as const,
             label: "Business Legal Status Key",
             options: {
@@ -786,7 +827,7 @@ const CompanyClientVariant = {
                 minLength: 8
             }
         },
-        business_sic_code_keys: {
+        business_sic_codes: {
             type: "array" as const,
             itemSchema: {
                 type: "string" as const,
@@ -799,7 +840,7 @@ const CompanyClientVariant = {
             label: "Financial Year End Day",
             validation: { min: 1, max: 31 }
         },
-        financial_year_end_month_key: {
+        financial_year_end_month: {
             type: "enum" as const,
             label: "Financial Year End Month Key",
             options: {
