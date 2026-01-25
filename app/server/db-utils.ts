@@ -2,12 +2,12 @@ import type { Schema } from "~/models/base_schema_types";
 import { validateObject, type ValidationResult } from "~/utils/validation";
 import { generateAuditDiff } from "~/utils/audit";
 import type { UserSession } from "./client";
-import { parseTableRow, serializeEntity, toUnixTimestamp, type TableRow } from "~/models/common/table";
+import { parseTableRow, serializeEntity, type TableRow } from "~/models/common/table";
 
 /**
  * Valid table names for SQL injection protection
  */
-const VALID_TABLE_NAMES = ["clients", "users", "groups", "accounts"] as const;
+const VALID_TABLE_NAMES = ["clients", "client_dependants", "users", "groups", "accounts"] as const;
 type TableName = typeof VALID_TABLE_NAMES[number];
 
 /**
@@ -25,7 +25,7 @@ function validateTableName(tableName: string): asserts tableName is TableName {
  * @param tableName - Name of the table (e.g., "clients", "users", "groups")
  * @param entityId - Entity ID to retrieve
  * @param accountId - Account ID for tenant isolation
- * @returns The parsed entity with version from DB, or null if not found
+ * @returns The parsed entity (id from DB row), or null if not found
  * @throws Error if table name is invalid
  */
 export async function readEntity<T extends { id?: number | null }>(
@@ -33,11 +33,11 @@ export async function readEntity<T extends { id?: number | null }>(
     tableName: string,
     entityId: number,
     accountId: number
-): Promise<{ entity: T & { id: number }; dbVersion: number } | null> {
+): Promise<{ entity: T & { id: number } } | null> {
     validateTableName(tableName);
 
     const result = await db.prepare(
-        `SELECT id, body, updated_at, _version, account_id FROM ${tableName} WHERE id = ? AND account_id = ?`
+        `SELECT id, body, account_id FROM ${tableName} WHERE id = ? AND account_id = ?`
     )
         .bind(entityId, accountId)
         .first<TableRow>();
@@ -52,8 +52,7 @@ export async function readEntity<T extends { id?: number | null }>(
     }
 
     return {
-        entity,
-        dbVersion: result._version
+        entity
     };
 }
 
@@ -93,7 +92,6 @@ export async function processUpdate<T extends Record<string, any> & { id: number
     }
 
     const existingEntity = existingResult.entity;
-    const dbVersion = existingResult.dbVersion;
 
     // Account ownership is already validated by WHERE clause in readEntity
     // This check is redundant but kept for explicit error messaging
@@ -103,7 +101,7 @@ export async function processUpdate<T extends Record<string, any> & { id: number
 
     const expectedVersion = entityData.version;
     // Check version for optimistic concurrency control
-    if (dbVersion !== expectedVersion) {
+    if ((existingEntity as any).version !== expectedVersion) {
         const otherUserId = existingEntity.updated_by ?? "unknown";
         return {
             success: false,
@@ -164,17 +162,36 @@ export async function processUpdate<T extends Record<string, any> & { id: number
 
     // Serialize and update database
     const bodyJson = serializeEntity(updatedEntity);
-    const updatedAt = toUnixTimestamp(updatedData.updated_at as string);
-    const newVersion = updatedData.version;
 
     const updateResult = await db.prepare(
-        `UPDATE ${tableName} SET body = ?, updated_at = ?, _version = ? WHERE id = ? AND account_id = ?`
+        `UPDATE ${tableName}
+         SET body = ?
+         WHERE id = ?
+           AND account_id = ?
+           AND json_extract(body, '$.version') = ?`
     )
-        .bind(bodyJson, updatedAt, newVersion, entityId, userSession.account_id)
+        .bind(bodyJson, entityId, userSession.account_id, expectedVersion)
         .run();
 
     if (!updateResult.success) {
         throw new Error(`Failed to update ${entityName} in database`);
+    }
+
+    // If 0 rows changed, another writer updated the record after we read it.
+    if ((updateResult.meta?.changes ?? 0) === 0) {
+        const latest = await readEntity<T>(db, tableName, entityId, userSession.account_id);
+        const otherUserId = latest?.entity?.updated_by ?? "unknown";
+        return {
+            success: false,
+            validation: {
+                isValid: false,
+                errors: [{
+                    path: ["version"],
+                    message: `Another user (${otherUserId}) has updated this ${entityName.toLowerCase()}. Please refresh and try again.`,
+                    fieldLabel: "Version"
+                }]
+            }
+        };
     }
 
     return {
@@ -233,13 +250,12 @@ export async function processCreate<T extends Record<string, any>>(
 
     // Serialize entity to JSON for storage
     const bodyJson = serializeEntity(validationResult.value);
-    const updatedAt = toUnixTimestamp(now);
 
     // Insert into database (id is auto-incremented)
     const insertResult = await db.prepare(
-        `INSERT INTO ${tableName} (account_id, body, updated_at, _version) VALUES (?, ?, ?, ?)`
+        `INSERT INTO ${tableName} (account_id, body) VALUES (?, ?)`
     )
-        .bind(userSession.account_id, bodyJson, updatedAt, 1)
+        .bind(userSession.account_id, bodyJson)
         .run();
 
     if (!insertResult.success) {

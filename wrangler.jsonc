@@ -48,6 +48,14 @@
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
 	/**
+	 * Workers AI Binding
+	 * Used for Package FOMO analysis to summarize changelog benefits
+	 * Docs: https://developers.cloudflare.com/workers-ai/
+	 */
+	"ai": {
+		"binding": "AI"
+	},
+	/**
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */

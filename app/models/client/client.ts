@@ -1,7 +1,9 @@
 import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../base_schema_types";
 import { AddressSchema } from "../common/address";
+import { EmailSchema, PhoneSchema } from "../common/PhoneEmail";
 import { ImportedDataSchema } from "../common/import";
 import { TrackingSchema } from "../common/tracking";
+import { ClientDependantSchema } from "./dependant";
 
 // Shared nationality options list (British first)
 const NationalityOptions = {
@@ -138,6 +140,59 @@ export const ClientAddressSchema = {
         PastAddressVariant
     ]
 } as const satisfies UnionSchema;
+
+// Client Contact Details Schema
+const ClientContactDetailsSchema = {
+    type: "object" as const,
+    label: "Client Contact Details",
+    fields: {
+        preferred_method_of_contact: {
+            type: "enum" as const,
+            label: "Preferred Method of Contact",
+            options: {
+                no_preference: "No Preference",
+                phone: "Phone",
+                email: "Email"
+            }
+        },
+        phones: {
+            type: "array" as const,
+            itemSchema: PhoneSchema,
+        },
+        emails: {
+            type: "array" as const,
+            itemSchema: EmailSchema,
+        }
+    }
+} as const satisfies ObjectSchema;
+
+// Client Marketing Consent Preferences Schema
+const ClientConsentMarketingPreferencesSchema = {
+    type: "object" as const,
+    label: "Marketing Consent Preferences",
+    fields: {
+        can_market_by_post: {
+            type: "boolean" as const,
+            label: "Can Market by Post"
+        },
+        can_market_by_email: {
+            type: "boolean" as const,
+            label: "Can Market by Email"
+        },
+        can_market_by_call: {
+            type: "boolean" as const,
+            label: "Can Market by Phone"
+        },
+        can_market_by_sms: {
+            type: "boolean" as const,
+            label: "Can Market by SMS"
+        },
+        marketing_consented_at_date: {
+            type: "datetime" as const,
+            label: "Date Updated"
+        }
+    }
+} as const satisfies ObjectSchema;
 
 // Company Financials Schema
 const CompanyFinancialsSchema = {
@@ -770,10 +825,23 @@ const IndividualClientVariant = {
         vulnerability_info: {
             ...VulnerableInfoSchema
         },
+        contact_details: {
+            ...ClientContactDetailsSchema,
+            label: "Contact Details"
+        },
+        marketing_consent_preferences: {
+            ...ClientConsentMarketingPreferencesSchema,
+            label: "Marketing Consent Preferences"
+        },
         addresses: {
             type: "array" as const,
             itemSchema: ClientAddressSchema,
             label: "Addresses",
+        },
+        dependants: {
+            type: "array" as const,
+            itemSchema: ClientDependantSchema,
+            label: "Dependants",
         }
     }
 } as const satisfies UnionVariant<"client_type", "individual">;
@@ -910,3 +978,5 @@ export const ClientSchema = {
 export type Client = SchemaToType<typeof ClientSchema>;
 
 export type ClientAddress = SchemaToType<typeof ClientAddressSchema>;
+
+export type { ClientDependant } from "./dependant";

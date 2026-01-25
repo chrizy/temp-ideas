@@ -1,39 +1,9 @@
 import type { ObjectSchema, SchemaToType } from "../base_schema_types";
 import { ImportedDataSchema } from "../common/import";
+import { EmailSchema, PhoneSchema } from "../common/PhoneEmail";
 import { TrackingSchema } from "../common/tracking";
 
-// Phone Number Schema
-const PhoneSchema = {
-    type: "object" as const,
-    label: "Phone",
-    fields: {
-        phone_number: {
-            type: "string" as const,
-            label: "Phone Number",
-            validation: {
-                maxLength: 50,
-                minLength: 1
-            }
-        }
-    }
-} as const satisfies ObjectSchema;
 
-// Email Address Schema
-const EmailAddressSchema = {
-    type: "object" as const,
-    label: "Email Address",
-    fields: {
-        email: {
-            type: "string" as const,
-            label: "Email",
-            validation: {
-                maxLength: 254,
-                minLength: 3,
-                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            }
-        }
-    }
-} as const satisfies ObjectSchema;
 
 // Business Role Options for UI Autocomplete
 // Organized by business type for easy lookup
@@ -151,7 +121,7 @@ export const IndividualSchema = {
         },
         emails: {
             type: "array" as const,
-            itemSchema: EmailAddressSchema,
+            itemSchema: EmailSchema,
             label: "Emails"
         },
         business_role: {
@@ -168,4 +138,4 @@ export const IndividualSchema = {
 
 export type Individual = SchemaToType<typeof IndividualSchema>;
 export type Phone = SchemaToType<typeof PhoneSchema>;
-export type EmailAddress = SchemaToType<typeof EmailAddressSchema>;
+export type EmailAddress = SchemaToType<typeof EmailSchema>;

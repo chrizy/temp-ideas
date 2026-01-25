@@ -3,6 +3,7 @@
 
 // Base validation properties shared across all types
 type BaseValidation = {
+    /** for an enum will select first item as default */
     required?: boolean;
     custom?: (value: any) => boolean | string; // custom validator returning true or error message
 };
@@ -236,8 +237,8 @@ export function resolveFieldSchema(schema: Schema, path: (string | number)[], va
     let node: Schema = schema;
     let currentValue: any = value;
 
-    for (let i = 0; i < path.length; i++) {
-        const segment = path[i];
+    for (const element of path) {
+        const segment = element;
 
         // Union → choose correct variant based on value if available
         if (node.type === "union") {

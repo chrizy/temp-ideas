@@ -19,12 +19,14 @@ describe("Company Type Inference", () => {
             },
             phones: [
                 {
+                    purpose: "work",
                     phone_number: "020 1234 5678",
                     department: "Sales",
                 },
             ],
             emails: [
                 {
+                    purpose: "work",
                     email: "info@acme.com",
                     department: "General",
                 },
@@ -41,12 +43,14 @@ describe("Company Type Inference", () => {
                     },
                     phones: [
                         {
+                            purpose: "work",
                             phone_number: "020 9876 5432",
                             department: "Branch Office",
                         },
                     ],
                     emails: [
                         {
+                            purpose: "work",
                             email: "london@acme.com",
                             department: "Branch",
                         },
@@ -83,11 +87,13 @@ describe("Company Type Inference", () => {
             business_role: "Sales Progresser",
             phones: [
                 {
+                    purpose: "work",
                     phone_number: "020 1234 5678",
                 },
             ],
             emails: [
                 {
+                    purpose: "work",
                     email: "info@acme.com",
                 },
             ],

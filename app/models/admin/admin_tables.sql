@@ -21,6 +21,7 @@ CREATE INDEX idx_groups_lineage ON groups(account_id, lineage);
 
 
 
+
 async function createGroup(env, accountId, name, parentId) {
   const db = env.SHARED_D1;
 

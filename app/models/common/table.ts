@@ -6,8 +6,6 @@
 export type TableRow = {
     id: number; // Auto-increment primary key, always exists in DB
     body: string; // JSON document
-    updated_at: number; // Unix timestamp (INTEGER)
-    _version: number; // Version counter for optimistic concurrency
     account_id: number; // Tenant/account identifier
 };
 

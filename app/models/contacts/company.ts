@@ -1,6 +1,7 @@
 import type { ObjectSchema, SchemaToType } from "../base_schema_types";
 import { AddressSchema } from "../common/address";
 import { ImportedDataSchema } from "../common/import";
+import { EmailSchema, PhoneSchema } from "../common/PhoneEmail";
 import { TrackingSchema } from "../common/tracking";
 
 // Phone Number and Department Schema
@@ -8,15 +9,7 @@ const PhoneNumberAndDepartmentSchema = {
     type: "object" as const,
     label: "Phone Number and Department",
     fields: {
-        phone_number: {
-            type: "string" as const,
-            label: "Phone Number",
-            validation: {
-                maxLength: 50,
-                minLength: 1
-                // Note: Phone format validation can be added via custom validator if stricter validation is needed
-            }
-        },
+        ...PhoneSchema.fields,
         department: {
             type: "string" as const,
             label: "Department",
@@ -30,16 +23,7 @@ const EmailAndDepartmentSchema = {
     type: "object" as const,
     label: "Email and Department",
     fields: {
-        email: {
-            type: "string" as const,
-            label: "Email",
-            validation: {
-                maxLength: 254, // RFC 5321 maximum email length
-                minLength: 3, // Minimum: a@b
-                // Basic email pattern (RFC 5322 compliant)
-                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            }
-        },
+        ...EmailSchema.fields,
         department: {
             type: "string" as const,
             label: "Department",
