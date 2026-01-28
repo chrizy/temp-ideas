@@ -6,25 +6,25 @@ describe("generateAuditDiff - Group Schema", () => {
     // Helper to create a minimal group
     function createGroup(overrides: Partial<Group> = {}): Group {
         return {
-            id: "group-123",
-            entity_type: "Organization",
-            parent_group_id: "group-001",
+            id: 123,
+            parent_group_id: 1,
             reference: "REF-001",
             name: "Example Branch Office",
             linkage: "1.2.3",
             group_type_id: "Branch",
             account_id: 1001,
+            version: 1,
             created_by: "user-001",
             created_at: "2024-01-15T10:00:00Z",
             updated_by: "user-001",
             updated_at: "2024-01-20T14:30:00Z",
-            deleted: false,
+            is_deleted: false,
             lists: [],
             settings: [],
             task_configurations: [],
             section_field_requirements: [],
             address: {
-                is_non_uk_address: false,
+                is_uk: true,
                 house_number: "123",
                 street: "Main Street",
                 town: "London",
@@ -89,15 +89,15 @@ describe("generateAuditDiff - Group Schema", () => {
         });
 
         it("should detect boolean field change", () => {
-            const oldValue = createGroup({ deleted: false });
-            const newValue = createGroup({ deleted: true });
+            const oldValue = createGroup({ is_deleted: false });
+            const newValue = createGroup({ is_deleted: true });
 
             const changes = generateAuditDiff(GroupSchema, oldValue, newValue);
 
             expect(changes).toHaveLength(1);
             expect(changes[0]).toEqual({
-                label: "Deleted",
-                path: "deleted",
+                label: "Is Deleted",
+                path: "is_deleted",
                 oldValue: false,
                 newValue: true
             });
@@ -155,7 +155,7 @@ describe("generateAuditDiff - Group Schema", () => {
         it("should detect address field change", () => {
             const oldValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "Old Street",
                     town: "London",
                     postcode: "SW1A 1AA",
@@ -165,7 +165,7 @@ describe("generateAuditDiff - Group Schema", () => {
             });
             const newValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "New Street",
                     town: "London",
                     postcode: "SW1A 1AA",
@@ -190,7 +190,7 @@ describe("generateAuditDiff - Group Schema", () => {
         it("should detect multiple address field changes", () => {
             const oldValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "Old Street",
                     town: "Old Town",
                     postcode: "SW1A 1AA",
@@ -200,7 +200,7 @@ describe("generateAuditDiff - Group Schema", () => {
             });
             const newValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "New Street",
                     town: "New Town",
                     postcode: "SW1A 1AA",
@@ -230,7 +230,7 @@ describe("generateAuditDiff - Group Schema", () => {
         it("should detect address enum field change", () => {
             const oldValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "Main Street",
                     town: "London",
                     postcode: "SW1A 1AA",
@@ -240,7 +240,7 @@ describe("generateAuditDiff - Group Schema", () => {
             });
             const newValue = createGroup({
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "Main Street",
                     town: "Edinburgh",
                     postcode: "EH1 1AA",
@@ -450,7 +450,7 @@ describe("generateAuditDiff - Group Schema", () => {
             const oldValue = createGroup({
                 name: "Old Name",
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "Old Street",
                     town: "London",
                     postcode: "SW1A 1AA",
@@ -464,7 +464,7 @@ describe("generateAuditDiff - Group Schema", () => {
             const newValue = createGroup({
                 name: "New Name",
                 address: {
-                    is_non_uk_address: false,
+                    is_uk: true,
                     street: "New Street",
                     town: "London",
                     postcode: "SW1A 1AA",

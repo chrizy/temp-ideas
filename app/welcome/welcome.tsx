@@ -17,7 +17,7 @@ const INITIAL_PERSON: Client = {
     {
       client_address_id: "addr-1",
       address: {
-        is_non_uk_address: false,
+        is_uk: true,
         house_number: "123",
         street: "Main St",
         town: "London",
@@ -30,7 +30,7 @@ const INITIAL_PERSON: Client = {
     {
       client_address_id: "addr-2",
       address: {
-        is_non_uk_address: true,
+        is_uk: false,
         international_line_1: "123 Main St",
         international_line_2: "Apt 1",
         country_key: "US",
@@ -75,7 +75,7 @@ export function Welcome({ message }: { message: string }) {
         {
           client_address_id: "", // Empty but required
           address: {
-            is_non_uk_address: false,
+            is_uk: true,
             house_number: "123",
             street: "Main St",
             town: "London",

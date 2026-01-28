@@ -159,7 +159,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "123 Main St",
               town: "London",
               postcode: "SW1A 1AA",
@@ -197,7 +197,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               // street, town, postcode missing
               uk_country_key: "england",
             },
@@ -239,7 +239,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "123 Main St",
               town: "London",
               postcode: "SW1A 1AA",
@@ -283,7 +283,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "123 Main St",
               town: "London",
               postcode: "SW1A 1AA",
@@ -326,7 +326,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "123 Main St", // Has street
               town: "London",
               postcode: "SW1A 1AA",
@@ -339,7 +339,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-2",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               // Missing street
               town: "Manchester",
               postcode: "M1 1AA",
@@ -387,7 +387,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-1",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "123 Main St",
               // Missing town
               postcode: "SW1A 1AA",
@@ -400,7 +400,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-2",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "456 Oak Ave",
               town: "Manchester",
               // Missing postcode
@@ -413,7 +413,7 @@ describe("Section Is Complete Validation", () => {
           {
             client_address_id: "addr-3",
             address: {
-              is_non_uk_address: false,
+              is_uk: true,
               street: "789 Pine Rd",
               town: "Birmingham",
               postcode: "B1 1AA",

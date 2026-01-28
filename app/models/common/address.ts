@@ -31,10 +31,10 @@ export const EconomicRegionKeySchema = {
 
 export const UkAddressSchema = {
     type: "object" as const,
-    discriminator: "is_non_uk_address" as const,
-    value: false as const,
+    discriminator: "is_uk" as const,
+    value: true as const,
     fields: {
-        is_non_uk_address: { type: "boolean" as const },
+        is_uk: { type: "boolean" as const },
         flat_number: {
             type: "string" as const,
             label: "Flat Number",
@@ -90,14 +90,14 @@ export const UkAddressSchema = {
             validation: { maxLength: 100 }
         },
     }
-} as const satisfies UnionVariant<"is_non_uk_address", false>;
+} as const satisfies UnionVariant<"is_uk", true>;
 
 export const NonUkAddressSchema = {
     type: "object" as const,
-    discriminator: "is_non_uk_address" as const,
-    value: true as const,
+    discriminator: "is_uk" as const,
+    value: false as const,
     fields: {
-        is_non_uk_address: { type: "boolean" as const },
+        is_uk: { type: "boolean" as const },
         international_line_1: {
             type: "string" as const,
             label: "International Line 1",
@@ -128,7 +128,7 @@ export const NonUkAddressSchema = {
             label: "Economic Region"
         },
     }
-} as const satisfies UnionVariant<"is_non_uk_address", true>;
+} as const satisfies UnionVariant<"is_uk", false>;
 
 const AddressBaseSchema = {
     type: "object" as const,
@@ -237,21 +237,22 @@ function computeAddressValues(address: any): { is_valid: boolean; formatted_addr
         return { is_valid: false, formatted_address: "" };
     }
 
-    const isNonUk = address.is_non_uk_address === true;
+    // Backwards-compatible default: missing flag => treat as UK
+    const isUk = address.is_uk !== false;
 
     let isValid: boolean;
     let formattedAddress: string;
 
-    if (isNonUk) {
-        // Non-UK: requires Line 1 and Line 2
-        isValid = isFieldPresent(address.international_line_1) &&
-            isFieldPresent(address.international_line_2);
-        formattedAddress = formatNonUkAddress(address);
-    } else {
+    if (isUk) {
         // UK: requires postcode and street
         isValid = isFieldPresent(address.postcode) &&
             isFieldPresent(address.street);
         formattedAddress = formatUkAddress(address);
+    } else {
+        // Non-UK: requires Line 1 and Line 2
+        isValid = isFieldPresent(address.international_line_1) &&
+            isFieldPresent(address.international_line_2);
+        formattedAddress = formatNonUkAddress(address);
     }
 
     return {

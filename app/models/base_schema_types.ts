@@ -89,6 +89,14 @@ export type DateTimeSchema = {
     validation?: DateTimeValidation;
 };
 
+export type UserIdValidation = StringValidation;
+
+export type UserIdSchema = {
+    type: "user_id";
+    label?: string;
+    validation?: UserIdValidation;
+};
+
 export type ObjectSchema = {
     type: "object";
     label?: string;
@@ -131,8 +139,10 @@ export type Schema =
     | DateSchema
     | DateTimeSchema
     | ArraySchema
+    | ArraySchema
     | ObjectSchema
-    | UnionSchema;
+    | UnionSchema
+    | UserIdSchema;
 
 
 /**
@@ -193,6 +203,9 @@ export type SchemaToType<S> =
 
     S extends { type: "datetime", validation?: { required: true } } ? string :
     S extends { type: "datetime" } ? string | null | undefined :
+
+    S extends { type: "user_id", validation?: { required: true } } ? string :
+    S extends { type: "user_id" } ? string | null | undefined :
 
     // arrays
     S extends { type: "array", itemSchema: infer I, validation?: { required: true } }

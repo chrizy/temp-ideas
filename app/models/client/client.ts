@@ -194,6 +194,25 @@ const ClientConsentMarketingPreferencesSchema = {
     }
 } as const satisfies ObjectSchema;
 
+export const ClientConsentSchema = {
+    type: "object" as const,
+    label: "Consumer Consent",
+    fields: {
+        consumer_consent_given: {
+            type: "boolean" as const,
+            label: "Consent to use sensitive data?"
+        },
+        consumer_consented_at_date: {
+            type: "datetime" as const,
+            label: "Date given"
+        },
+        consent_updated_by: {
+            type: "user_id" as const,
+            label: "Last update by"
+        }
+    }
+} as const satisfies ObjectSchema;
+
 // Company Financials Schema
 const CompanyFinancialsSchema = {
     type: "object" as const,
@@ -832,6 +851,10 @@ const IndividualClientVariant = {
         marketing_consent_preferences: {
             ...ClientConsentMarketingPreferencesSchema,
             label: "Marketing Consent Preferences"
+        },
+        consent: {
+            ...ClientConsentSchema,
+            label: "Consumer Consent"
         },
         addresses: {
             type: "array" as const,

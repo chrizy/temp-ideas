@@ -12,7 +12,7 @@ export const TrackingSchema = {
             validation: { required: true }
         },
         updated_by: {
-            type: "string" as const,
+            type: "user_id" as const,
             label: "Last Updated By",
         },
         updated_at: {
@@ -20,7 +20,7 @@ export const TrackingSchema = {
             label: "Last Updated At"
         },
         created_by: {
-            type: "string" as const,
+            type: "user_id" as const,
             label: "Created By",
         },
         created_at: {

@@ -8,7 +8,7 @@ describe("validateObject - Computed Values", () => {
   describe("Address Schema Computed Values", () => {
     it("should compute is_valid and formatted_address for valid UK address", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         postcode: "SW1A 1AA",
         street: "10 Downing Street",
         town: "London",
@@ -23,7 +23,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should compute is_valid as false for UK address missing postcode", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         street: "10 Downing Street",
         town: "London",
         postcode: "",
@@ -40,7 +40,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should compute is_valid as false for UK address missing street", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         postcode: "SW1A 1AA",
         town: "London",
       };
@@ -53,7 +53,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should compute is_valid and formatted_address for valid non-UK address", () => {
       const nonUkAddress: Address = {
-        is_non_uk_address: true,
+        is_uk: false,
         international_line_1: "123 Main Street",
         international_line_2: "Downtown",
         country_key: "USA",
@@ -67,7 +67,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should compute is_valid as false for non-UK address missing line 1", () => {
       const nonUkAddress: Address = {
-        is_non_uk_address: true,
+        is_uk: false,
         international_line_2: "Downtown",
         country_key: "USA",
       };
@@ -80,7 +80,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should compute is_valid as false for non-UK address missing line 2", () => {
       const nonUkAddress: Address = {
-        is_non_uk_address: true,
+        is_uk: false,
         international_line_1: "123 Main Street",
         country_key: "USA",
       };
@@ -93,7 +93,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should format UK address with all optional fields", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         flat_number: "Flat 5",
         house_number: "10",
         building_name: "The Building",
@@ -115,7 +115,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should format non-UK address with all optional fields", () => {
       const nonUkAddress: Address = {
-        is_non_uk_address: true,
+        is_uk: false,
         international_line_1: "123 Main Street",
         international_line_2: "Downtown",
         international_line_3: "Suite 100",
@@ -134,7 +134,7 @@ describe("validateObject - Computed Values", () => {
 
     it("should handle empty address object", () => {
       const emptyAddress: any = {
-        is_non_uk_address: false,
+        is_uk: true,
       };
 
       const result = validateObject(AddressSchema, emptyAddress);
@@ -153,7 +153,7 @@ describe("validateObject - Computed Values", () => {
   describe("Computed Fields Validation", () => {
     it("should not validate computed fields as user input", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         postcode: "SW1A 1AA",
         street: "10 Downing Street",
         // Manually set computed fields (should be ignored/overwritten)
@@ -210,7 +210,7 @@ describe("validateObject - Computed Values", () => {
       const testData = {
         name: "John",
         address: {
-          is_non_uk_address: false,
+          is_uk: true,
           postcode: "SW1A 1AA",
           street: "10 Downing Street",
         },
@@ -231,12 +231,12 @@ describe("validateObject - Computed Values", () => {
 
       const testData = [
         {
-          is_non_uk_address: false,
+          is_uk: true,
           postcode: "SW1A 1AA",
           street: "10 Downing Street",
         },
         {
-          is_non_uk_address: true,
+          is_uk: false,
           international_line_1: "123 Main St",
           international_line_2: "Downtown",
         },
@@ -255,9 +255,10 @@ describe("validateObject - Computed Values", () => {
   describe("Computed Values with Validation Errors", () => {
     it("should still compute values even when validation fails", () => {
       const ukAddress: Address = {
-        is_non_uk_address: false,
+        is_uk: true,
         // Missing required postcode
         street: "10 Downing Street",
+        postcode: "",
       };
 
       const result = validateObject(AddressSchema, ukAddress);
@@ -276,7 +277,7 @@ describe("validateObject - Computed Values", () => {
     describe("Address Schema Description", () => {
       it("should compute description for UK address", () => {
         const ukAddress: Address = {
-          is_non_uk_address: false,
+          is_uk: true,
           postcode: "SW1A 1AA",
           street: "10 Downing Street",
           town: "London",
@@ -292,7 +293,7 @@ describe("validateObject - Computed Values", () => {
 
       it("should compute description for non-UK address", () => {
         const nonUkAddress: Address = {
-          is_non_uk_address: true,
+          is_uk: false,
           international_line_1: "123 Main Street",
           international_line_2: "Downtown",
           country_key: "USA",
@@ -307,7 +308,7 @@ describe("validateObject - Computed Values", () => {
 
       it("should compute description for empty address", () => {
         const emptyAddress: any = {
-          is_non_uk_address: false,
+          is_uk: true,
         };
 
         const result = validateObject(AddressSchema, emptyAddress);
@@ -317,9 +318,10 @@ describe("validateObject - Computed Values", () => {
 
       it("should compute description even when validation fails", () => {
         const invalidAddress: Address = {
-          is_non_uk_address: false,
+          is_uk: true,
           street: "10 Downing Street",
           // Missing required postcode
+          postcode: "",
         };
 
         const result = validateObject(AddressSchema, invalidAddress);
@@ -420,7 +422,7 @@ describe("validateObject - Computed Values", () => {
         const testData = {
           name: "John",
           address: {
-            is_non_uk_address: false,
+            is_uk: true,
             postcode: "SW1A 1AA",
             street: "10 Downing Street",
             town: "London",
@@ -441,13 +443,13 @@ describe("validateObject - Computed Values", () => {
 
         const testData = [
           {
-            is_non_uk_address: false,
+            is_uk: true,
             postcode: "SW1A 1AA",
             street: "10 Downing Street",
             town: "London",
           },
           {
-            is_non_uk_address: true,
+            is_uk: false,
             international_line_1: "123 Main St",
             international_line_2: "Downtown",
             country_key: "USA",
@@ -464,8 +466,8 @@ describe("validateObject - Computed Values", () => {
 
     describe("Description Field Validation", () => {
       it("should not validate description field as user input", () => {
-        const ukAddress: Address = {
-          is_non_uk_address: false,
+        const ukAddress: any = {
+          is_uk: true,
           postcode: "SW1A 1AA",
           street: "10 Downing Street",
           // Manually set description (should be overwritten)
@@ -486,7 +488,7 @@ describe("validateObject - Computed Values", () => {
       it("should compute description after other computed values", () => {
         // Description should be able to use other computed values
         const ukAddress: Address = {
-          is_non_uk_address: false,
+          is_uk: true,
           postcode: "SW1A 1AA",
           street: "10 Downing Street",
           town: "London",

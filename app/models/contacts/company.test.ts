@@ -12,7 +12,7 @@ describe("Company Type Inference", () => {
             company_type: "estate_agent",
             website_url: "https://acme.com",
             address: {
-                is_non_uk_address: false,
+                is_uk: true,
                 postcode: "SW1A 1AA",
                 street: "10 Downing Street",
                 town: "London",
@@ -20,6 +20,7 @@ describe("Company Type Inference", () => {
             phones: [
                 {
                     purpose: "work",
+                    country_code: "44",
                     phone_number: "020 1234 5678",
                     department: "Sales",
                 },
@@ -36,7 +37,7 @@ describe("Company Type Inference", () => {
                     branch_id: "branch-001",
                     business_branch_name: "London Branch",
                     address: {
-                        is_non_uk_address: false,
+                        is_uk: true,
                         postcode: "EC1A 1BB",
                         street: "123 High Street",
                         town: "London",
@@ -44,6 +45,7 @@ describe("Company Type Inference", () => {
                     phones: [
                         {
                             purpose: "work",
+                            country_code: "44",
                             phone_number: "020 9876 5432",
                             department: "Branch Office",
                         },
@@ -60,7 +62,7 @@ describe("Company Type Inference", () => {
                     branch_id: "branch-002",
                     business_branch_name: "Manchester Branch",
                     address: {
-                        is_non_uk_address: false,
+                        is_uk: true,
                         postcode: "M1 1AA",
                         street: "456 Main Street",
                         town: "Manchester",
@@ -88,6 +90,7 @@ describe("Company Type Inference", () => {
             phones: [
                 {
                     purpose: "work",
+                    country_code: "44",
                     phone_number: "020 1234 5678",
                 },
             ],
@@ -117,7 +120,7 @@ describe("Company Type Inference", () => {
         }
 
         // Type check: verify nested types
-        expect(company.address?.is_non_uk_address).toBe(false);
+        expect(company.address?.is_uk).toBe(true);
         expect(company.phones?.[0]?.phone_number).toBe("020 1234 5678");
         expect(company.emails?.[0]?.email).toBe("info@acme.com");
         expect(company.referral_partner?.referral_partner_status).toBe("active");
@@ -161,7 +164,7 @@ describe("Company Type Inference", () => {
             name: "International Corp",
             company_type: "accountant",
             address: {
-                is_non_uk_address: true,
+                is_uk: false,
                 international_line_1: "123 Main Street",
                 international_line_2: "Suite 100",
                 country_key: "USA",
@@ -169,7 +172,7 @@ describe("Company Type Inference", () => {
             },
         };
 
-        expect(company.address?.is_non_uk_address).toBe(true);
+        expect(company.address?.is_uk).toBe(false);
         if (company.address && "international_line_1" in company.address) {
             expect(company.address.international_line_1).toBe("123 Main Street");
         }
@@ -250,7 +253,7 @@ describe("Company Type Inference", () => {
             branch_id: "branch-006",
             business_branch_name: "International Branch",
             address: {
-                is_non_uk_address: true,
+                is_uk: false,
                 international_line_1: "456 Global Ave",
                 international_line_2: "Floor 5",
                 country_key: "CAN",
@@ -258,7 +261,7 @@ describe("Company Type Inference", () => {
             },
         };
 
-        expect(branch.address?.is_non_uk_address).toBe(true);
+        expect(branch.address?.is_uk).toBe(false);
         if (branch.address && "international_line_1" in branch.address) {
             expect(branch.address.international_line_1).toBe("456 Global Ave");
         }

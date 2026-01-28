@@ -204,7 +204,7 @@ const exampleGroup: Group = {
         { key: "language", value: "en" }
     ],
     address: {
-        is_non_uk_address: false,
+        is_uk: true,
         house_number: "123",
         street: "Main Street",
         town: "London",
