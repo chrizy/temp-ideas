@@ -15,24 +15,22 @@ export const ClientDependantSchema = {
             itemSchema: { type: "number" as const },
             label: "Client IDs",
         },
-        first_name: {
-            type: "string" as const,
-            label: "First name",
-            validation: { maxLength: 100, minLength: 1 },
-        },
-        middle_names: {
-            type: "string" as const,
-            label: "Middle name(s)",
-            validation: { maxLength: 100, minLength: 1 },
-        },
-        last_name: {
-            type: "string" as const,
-            label: "Last name",
-            validation: { maxLength: 100, minLength: 1 },
-        },
         birth_date: {
             type: "datetime" as const,
             label: "Date of birth",
+        },
+        relationship_to_client: {
+            type: "enum" as const,
+            label: "Relationship to client(s)",
+            options: {
+                child: "Child",
+                spouse: "Spouse",
+                civil_partner: "Civil partner",
+                partner: "Partner",
+                friend: "Friend",
+                parent: "Parent",
+                other_family_member: "Other family member",
+            }
         },
         is_financially_dependant: {
             type: "boolean" as const,
@@ -56,19 +54,7 @@ export const ClientDependantSchema = {
                 other_accommodation: "Other accommodation",
             }
         },
-        relationship_to_client_key: {
-            type: "enum" as const,
-            label: "Relationship to client(s)",
-            options: {
-                child: "Child",
-                spouse: "Spouse",
-                civil_partner: "Civil partner",
-                partner: "Partner",
-                friend: "Friend",
-                parent: "Parent",
-                other_family_member: "Other family member",
-            }
-        },
+
         import: { ...ImportedDataSchema }
     }
 } as const satisfies ObjectSchema;

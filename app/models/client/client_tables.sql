@@ -21,7 +21,6 @@ CREATE TABLE clients (
 );
 
 -- Important indexes (tenant + common list filters/sorts)
-CREATE INDEX idx_clients_account ON clients(account_id);
 CREATE INDEX idx_clients_account_deleted ON clients(account_id, is_deleted);
 CREATE INDEX idx_clients_account_type ON clients(account_id, client_type);
 CREATE INDEX idx_clients_account_individual_name ON clients(account_id, last_name, first_name);
@@ -39,8 +38,6 @@ CREATE TABLE client_dependants (
   body TEXT NOT NULL,
 
   -- Commonly queried fields (generated from JSON)
-  first_name TEXT GENERATED ALWAYS AS (json_extract(body, '$.first_name')) STORED,
-  last_name TEXT GENERATED ALWAYS AS (json_extract(body, '$.last_name')) STORED,
   is_deleted INTEGER GENERATED ALWAYS AS (json_extract(body, '$.is_deleted')) STORED
 );
 

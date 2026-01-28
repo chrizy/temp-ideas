@@ -1,7 +1,7 @@
 
 CREATE TABLE groups (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  account_id TEXT NOT NULL,     -- tenant
+  account_id INTEGER NOT NULL,     -- tenant
   name TEXT NOT NULL,
 
   parent_id INTEGER NULL,       -- FK to groups(id)

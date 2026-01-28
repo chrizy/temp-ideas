@@ -594,7 +594,7 @@ const ClientBaseFields = {
         label: "Group ID",
         validation: { required: true }
     },
-    import: { ...ImportedDataSchema }
+
 } as const;
 
 // Individual Client Variant
@@ -837,11 +837,6 @@ const IndividualClientVariant = {
             type: "array" as const,
             itemSchema: ClientAddressSchema,
             label: "Addresses",
-        },
-        dependants: {
-            type: "array" as const,
-            itemSchema: ClientDependantSchema,
-            label: "Dependants",
         }
     }
 } as const satisfies UnionVariant<"client_type", "individual">;
