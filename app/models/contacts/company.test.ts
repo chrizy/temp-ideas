@@ -19,6 +19,7 @@ describe("Company Type Inference", () => {
             },
             phones: [
                 {
+                    phone_id: "company-phone-1",
                     purpose: "work",
                     country_code: "44",
                     phone_number: "020 1234 5678",
@@ -27,6 +28,7 @@ describe("Company Type Inference", () => {
             ],
             emails: [
                 {
+                    email_id: "company-email-1",
                     purpose: "work",
                     email: "info@acme.com",
                     department: "General",
@@ -44,6 +46,7 @@ describe("Company Type Inference", () => {
                     },
                     phones: [
                         {
+                            phone_id: "branch-phone-1",
                             purpose: "work",
                             country_code: "44",
                             phone_number: "020 9876 5432",
@@ -52,6 +55,7 @@ describe("Company Type Inference", () => {
                     ],
                     emails: [
                         {
+                            email_id: "branch-email-1",
                             purpose: "work",
                             email: "london@acme.com",
                             department: "Branch",
@@ -89,6 +93,7 @@ describe("Company Type Inference", () => {
             business_role: "Sales Progresser",
             phones: [
                 {
+                    phone_id: "individual-phone-1",
                     purpose: "work",
                     country_code: "44",
                     phone_number: "020 1234 5678",
@@ -96,6 +101,7 @@ describe("Company Type Inference", () => {
             ],
             emails: [
                 {
+                    email_id: "individual-email-1",
                     purpose: "work",
                     email: "info@acme.com",
                 },

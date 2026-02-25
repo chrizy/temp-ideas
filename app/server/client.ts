@@ -1,16 +1,9 @@
 import { ClientSchema, type Client } from "~/models/client/client";
-import { type ValidationResult } from "~/utils/validation";
+import type { ValidationResult } from "~/utils/validation";
 import { processUpdate, readEntity, processCreate } from "./db-utils";
+import type { UserSession } from "./UserSession";
 
-/**
- * User session information for database operations
- */
-export type UserSession = {
-    user_type_key: "user" | "introducer" | "client";
-    user_id: string;
-    account_id: number;
-    db_shard_id: string;
-};
+export { userClientPermission } from "./client-access";
 
 /**
  * Client database access helper
@@ -32,10 +25,10 @@ export class ClientDB {
         clientData: Omit<Client, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id" | "is_deleted">,
         userSession: UserSession
     ): Promise<{ success: true; client: Client } | { success: false; validation: ValidationResult }> {
-        const result = await processCreate(
+        const result = await processCreate<Client>(
             this.db,
             "clients",
-            clientData as any,
+            clientData,
             userSession,
             ClientSchema,
             "Client"
@@ -53,7 +46,7 @@ export class ClientDB {
      */
     async get(clientId: number): Promise<Client | null> {
         const result = await readEntity<Client>(this.db, "clients", clientId, this.accountId);
-        return result?.entity ?? null;
+        return result ?? null;
     }
 
     /**

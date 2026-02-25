@@ -2,7 +2,7 @@ import { UserSchema, type User } from "~/models/admin/user";
 import { GroupSchema, type Group } from "~/models/admin/group";
 import { type ValidationResult } from "~/utils/validation";
 import { processUpdate, readEntity, processCreate } from "./db-utils";
-import type { UserSession } from "./client";
+import type { UserSession } from "./UserSession";
 
 /**
  * User database access helper
@@ -45,7 +45,7 @@ export class UserDB {
      */
     async get(userId: number): Promise<User | null> {
         const result = await readEntity<User>(this.db, "users", userId, this.accountId);
-        return result?.entity ?? null;
+        return result ?? null;
     }
 
     /**
@@ -113,7 +113,7 @@ export class GroupDB {
      */
     async get(groupId: number): Promise<Group | null> {
         const result = await readEntity<Group>(this.db, "groups", groupId, this.accountId);
-        return result?.entity ?? null;
+        return result ?? null;
     }
 
     /**

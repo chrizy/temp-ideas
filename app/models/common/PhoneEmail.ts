@@ -5,6 +5,11 @@ export const PhoneSchema = {
     type: "object" as const,
     label: "Phone",
     fields: {
+        // First field is the logical ID for this array item.
+        // Validation will auto-populate this when missing using crypto.randomUUID().
+        phone_id: {
+            type: "string" as const,
+        },
         purpose: {
             type: "enum" as const,
             label: "Phone Purpose",
@@ -249,6 +254,11 @@ export const EmailSchema = {
     type: "object" as const,
     label: "Email",
     fields: {
+        // First field is the logical ID for this array item.
+        // Validation will auto-populate this when missing using crypto.randomUUID().
+        email_id: {
+            type: "string" as const,
+        },
         purpose: {
             type: "enum" as const,
             label: "Email Purpose",

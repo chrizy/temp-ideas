@@ -218,6 +218,9 @@ const CompanyFinancialsSchema = {
     type: "object" as const,
     label: "Company Financials",
     fields: {
+        id: {
+            type: "string" as const,
+        },
         business_valuation_amount: {
             type: "number" as const,
             label: "Business Valuation Amount"
@@ -474,6 +477,11 @@ const ProfessionalAdvisorSchema = {
     type: "object" as const,
     label: "Professional Advisor",
     fields: {
+        contact_id: {
+            type: "string" as const,
+            label: "Contact ID",
+            validation: { required: true }
+        },
         type: {
             type: "enum" as const,
             label: "Advisor Type",
@@ -486,11 +494,6 @@ const ProfessionalAdvisorSchema = {
         is_acting_as_tax_planners: {
             type: "boolean" as const,
             label: "Is Acting As Tax Planners"
-        },
-        contact_id: {
-            type: "string" as const,
-            label: "Contact ID",
-            validation: { required: true }
         }
     }
 } as const satisfies ObjectSchema;
@@ -501,15 +504,15 @@ const IndividualClientRelationshipVariant = {
     discriminator: "relationship_context" as const,
     value: "individual" as const,
     fields: {
+        client_id: {
+            type: "string" as const,
+            label: "Client ID"
+        },
         relationship_context: {
             type: "enum" as const,
             label: "Relationship Context",
             options: { individual: "Individual", company: "Company" },
             validation: { required: true }
-        },
-        client_id: {
-            type: "string" as const,
-            label: "Client ID"
         },
         relationship_type: {
             type: "enum" as const,
@@ -534,15 +537,15 @@ const CompanyClientRelationshipVariant = {
     discriminator: "relationship_context" as const,
     value: "company" as const,
     fields: {
+        client_id: {
+            type: "string" as const,
+            label: "Client ID"
+        },
         relationship_context: {
             type: "enum" as const,
             label: "Relationship Context",
             options: { individual: "Individual", company: "Company" },
             validation: { required: true }
-        },
-        client_id: {
-            type: "string" as const,
-            label: "Client ID"
         },
         relationship_type: {
             type: "enum" as const,
@@ -994,7 +997,8 @@ export const ClientSchema = {
 } as const satisfies UnionSchema;
 
 export type Client = SchemaToType<typeof ClientSchema>;
-
+export type IndividualClient = Extract<Client, { client_type: "individual" }>;
+export type CompanyClient = Extract<Client, { client_type: "company" }>;
 export type ClientAddress = SchemaToType<typeof ClientAddressSchema>;
 
 export type { ClientDependant } from "./dependant";

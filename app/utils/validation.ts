@@ -48,6 +48,97 @@ export type ValidationResult = {
 };
 
 /**
+ * Generate a GUID string.
+ * Uses crypto.randomUUID() when available, with a lightweight fallback.
+ */
+function generateGuid(): string {
+    const cryptoObj = (globalThis as any)?.crypto;
+    if (cryptoObj && typeof cryptoObj.randomUUID === "function") {
+        return cryptoObj.randomUUID();
+    }
+    // Fallback: not cryptographically strong, but acceptable as a last resort
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Get the logical ID field name for items in an array schema.
+ * Convention: the first field defined in the item schema (object or first union variant).
+ */
+function getItemIdFieldName(itemSchema: Schema): string | undefined {
+    if (itemSchema.type === "object") {
+        const fieldNames = Object.keys(itemSchema.fields);
+        return fieldNames[0];
+    }
+    if (itemSchema.type === "union" && itemSchema.variants.length > 0) {
+        const firstVariant = itemSchema.variants[0];
+        const fieldNames = Object.keys(firstVariant.fields);
+        return fieldNames[0];
+    }
+    return undefined;
+}
+
+/**
+ * Recursively ensure all array items that have an ID field get a GUID when missing.
+ * This normalises the value tree before validation and computation.
+ */
+function ensureItemIds(schema: Schema, value: any, path: (string | number)[] = []): any {
+    switch (schema.type) {
+        case "array": {
+            if (!Array.isArray(value)) {
+                return value;
+            }
+
+            const itemSchema = schema.itemSchema;
+            const idFieldName = getItemIdFieldName(itemSchema);
+
+            return value.map((item, index) => {
+                const normalisedItem = ensureItemIds(itemSchema, item, [...path, index]);
+
+                if (
+                    idFieldName &&
+                    normalisedItem &&
+                    typeof normalisedItem === "object" &&
+                    !Array.isArray(normalisedItem)
+                ) {
+                    const currentId = (normalisedItem as any)[idFieldName];
+                    if (currentId === null || currentId === undefined || currentId === "") {
+                        (normalisedItem as any)[idFieldName] = generateGuid();
+                    }
+                }
+
+                return normalisedItem;
+            });
+        }
+
+        case "object": {
+            if (!value || typeof value !== "object" || Array.isArray(value)) {
+                return value;
+            }
+
+            const result: any = { ...value };
+            for (const [fieldName, fieldSchema] of Object.entries(schema.fields)) {
+                result[fieldName] = ensureItemIds(fieldSchema, result[fieldName], [...path, fieldName]);
+            }
+            return result;
+        }
+
+        case "union": {
+            if (!value || typeof value !== "object") {
+                return value;
+            }
+
+            const variant =
+                schema.variants.find(v => (value as any)[v.discriminator] === v.value) ??
+                schema.variants[0];
+            return ensureItemIds(variant, value, path);
+        }
+
+        default:
+            return value;
+    }
+}
+
+/**
  * Check if a schema field is computed (not user input)
  */
 function isComputedField(fieldSchema: Schema): boolean {
@@ -903,11 +994,14 @@ export function validateObject(
     schema: Schema,
     value: any
 ): ValidationResult & { value: any } {
+    // Normalise IDs for array items before validation/computation
+    const valueWithIds = ensureItemIds(schema, value, []);
+
     // Step 1-3: Validate all fields recursively, collecting errors
-    const errors = validateValue(value, schema, schema, []);
+    const errors = validateValue(valueWithIds, schema, schema, []);
 
     // Step 4: Apply computed values after validation
-    const valueWithComputed = applyComputedValues(value, schema, schema);
+    const valueWithComputed = applyComputedValues(valueWithIds, schema, schema);
 
     // Step 5: Return result with validation status and computed data
     return {

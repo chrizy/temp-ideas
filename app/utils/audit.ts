@@ -54,12 +54,85 @@ export function generateAuditDiff(schema: Schema, oldValue: any, newValue: any):
 
         // Handle arrays: compare each item by index
         if (nodeSchema.type === "array") {
-            const length = Math.max(previous?.length ?? 0, current?.length ?? 0);
+            const itemSchema = nodeSchema.itemSchema;
+
+            // Try to detect an ID field for array items based on schema convention:
+            // the first field in the item schema (object or first union variant).
+            const idFieldName = getItemIdFieldName(itemSchema);
+
+            const prevArray = Array.isArray(previous) ? previous : [];
+            const currArray = Array.isArray(current) ? current : [];
+
+            if (idFieldName && prevArray.length > 0 || idFieldName && currArray.length > 0) {
+                const prevById = new Map<string, any>();
+                const currById = new Map<string, any>();
+                let missingId = false;
+
+                for (const item of prevArray) {
+                    if (item && typeof item === "object" && !Array.isArray(item)) {
+                        const idValue = (item as any)[idFieldName];
+                        if (idValue === null || idValue === undefined || idValue === "") {
+                            missingId = true;
+                        } else {
+                            prevById.set(String(idValue), item);
+                        }
+                    } else if (item !== undefined && item !== null) {
+                        missingId = true;
+                    }
+                }
+
+                for (const item of currArray) {
+                    if (item && typeof item === "object" && !Array.isArray(item)) {
+                        const idValue = (item as any)[idFieldName];
+                        if (idValue === null || idValue === undefined || idValue === "") {
+                            missingId = true;
+                        } else {
+                            currById.set(String(idValue), item);
+                        }
+                    } else if (item !== undefined && item !== null) {
+                        missingId = true;
+                    }
+                }
+
+                // Only use ID-based diffing when all items have IDs; otherwise, fall back to index-based.
+                if (!missingId) {
+                    const allIds = new Set<string>([
+                        ...prevById.keys(),
+                        ...currById.keys()
+                    ]);
+
+                    for (const id of allIds) {
+                        const prevItem = prevById.get(id);
+                        const currItem = currById.get(id);
+
+                        const arrayKey = path[path.length - 1];
+                        const itemSegment =
+                            typeof arrayKey === "string"
+                                ? `${arrayKey}[id=${id}]`
+                                : `[id=${id}]`;
+                        const itemPath =
+                            arrayKey !== undefined
+                                ? [...path.slice(0, -1), itemSegment]
+                                : [itemSegment];
+
+                        walk(
+                            itemSchema,
+                            prevItem,
+                            currItem,
+                            itemPath
+                        );
+                    }
+                    return;
+                }
+            }
+
+            // Fallback: compare by index when we can't safely match by ID
+            const length = Math.max(prevArray.length, currArray.length);
             for (let index = 0; index < length; index++) {
                 walk(
                     nodeSchema.itemSchema,
-                    previous?.[index],
-                    current?.[index],
+                    prevArray[index],
+                    currArray[index],
                     [...path, index]
                 );
             }
@@ -128,6 +201,23 @@ function resolveVariant(schema: UnionSchema, previous: any, current: any) {
         }
     }
     return schema.variants[0];
+}
+
+/**
+ * Infer the logical ID field name for array items based on schema.
+ * Convention: the first field defined in the item schema (object or first union variant).
+ */
+function getItemIdFieldName(itemSchema: Schema): string | undefined {
+    if (itemSchema.type === "object") {
+        const fieldNames = Object.keys(itemSchema.fields);
+        return fieldNames[0];
+    }
+    if (itemSchema.type === "union" && itemSchema.variants.length > 0) {
+        const firstVariant = itemSchema.variants[0];
+        const fieldNames = Object.keys(firstVariant.fields);
+        return fieldNames[0];
+    }
+    return undefined;
 }
 
 function valuesEqual(a: unknown, b: unknown) {

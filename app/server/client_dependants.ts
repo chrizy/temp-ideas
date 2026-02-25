@@ -2,7 +2,7 @@ import { ClientDependantSchema, type ClientDependant } from "~/models/client/dep
 import type { ValidationResult } from "~/utils/validation";
 import { processCreate, processUpdate, readEntity } from "./db-utils";
 import { parseTableRow, type TableRow, toUnixTimestamp } from "~/models/common/table";
-import type { UserSession } from "./client";
+import type { UserSession } from "./UserSession";
 
 type DependantClientJoinRow = TableRow & { client_id: number };
 
@@ -32,7 +32,7 @@ export class ClientDependantDB {
 
     async get(dependantId: number): Promise<ClientDependant | null> {
         const result = await readEntity<ClientDependant>(this.db, "client_dependants", dependantId, this.accountId);
-        return result?.entity ?? null;
+        return result ?? null;
     }
 
     async update(

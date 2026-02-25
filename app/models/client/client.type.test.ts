@@ -37,6 +37,7 @@ const test_client: Client = {
         preferred_method_of_contact: "email",
         emails: [
             {
+                email_id: "email-1",
                 email: "john.doe@example.com",
                 purpose: "work",
                 is_default: true,
@@ -44,6 +45,7 @@ const test_client: Client = {
         ],
         phones: [
             {
+                phone_id: "phone-1",
                 purpose: "work",
                 country_code: "44",
                 phone_number: "020 1234 5678",

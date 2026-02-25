@@ -4,6 +4,7 @@ export const TrackingSchema = {
         /** Database auto-generated ID - always a number, always exists in DB */
         id: {
             type: "number" as const,
+            validation: { required: true }
         },
         /** Tenant/Account ID - identifies which account owns this record */
         account_id: {

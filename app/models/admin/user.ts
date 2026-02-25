@@ -1,4 +1,4 @@
-import type { ObjectSchema, SchemaToType, EnumSchema } from "../base_schema_types";
+import type { ObjectSchema, SchemaToType, EnumSchema, ArraySchema } from "../base_schema_types";
 import { TrackingSchema } from "../common/tracking";
 
 // Enums
@@ -13,6 +13,59 @@ export const UserCalendarSyncSchema = {
         Mock: "Mock"
     }
 } as const satisfies EnumSchema;
+
+/** Access level: none, read-only, or write (implies read and write) */
+export const AccessLevelSchema = {
+    type: "enum" as const,
+    label: "Access Level",
+    options: {
+        none: "None",
+        read: "Read",
+        write: "Write"
+    }
+} as const satisfies EnumSchema;
+
+/**
+ * Per-scope capabilities for client data access.
+ * Each scope (same group, sub-groups, specific users, specific groups) can grant these independently.
+ */
+export const ClientAccessCapabilitiesSchema = {
+    type: "object" as const,
+    label: "Client Access Capabilities",
+    fields: {
+        read: { type: "boolean" as const, label: "Read" },
+        write: { type: "boolean" as const, label: "Write" },
+        delete: { type: "boolean" as const, label: "Delete" },
+    }
+} as const satisfies ObjectSchema;
+
+/** One entry: a set of user IDs and the capabilities granted for clients assigned to those users */
+export const ClientAccessUserEntrySchema = {
+    type: "object" as const,
+    label: "User Access Entry",
+    fields: {
+        user_ids: {
+            type: "array" as const,
+            label: "User IDs",
+            itemSchema: { type: "string" as const }
+        } as const satisfies ArraySchema,
+        capabilities: { ...ClientAccessCapabilitiesSchema, label: "Capabilities" }
+    }
+} as const satisfies ObjectSchema;
+
+/** One entry: a set of group linkages and the capabilities granted for clients in those groups */
+export const ClientAccessGroupEntrySchema = {
+    type: "object" as const,
+    label: "Group Access Entry",
+    fields: {
+        group_linkages: {
+            type: "array" as const,
+            label: "Group Linkages",
+            itemSchema: { type: "string" as const }
+        } as const satisfies ArraySchema,
+        capabilities: { ...ClientAccessCapabilitiesSchema, label: "Capabilities" }
+    }
+} as const satisfies ObjectSchema;
 
 // Supporting types
 export const LoginDetailSchema = {
@@ -97,31 +150,31 @@ export const UserSchema = {
         ...TrackingSchema.fields,
         manager_user_id: { type: "string" as const, label: "Manager User ID" }, // Guid as string
         /**
-         * User can access data for all users in their group
+         * Capabilities for client data where the client is in the user's same group.
          */
-        has_access_to_all_users_in_group: { type: "boolean" as const, label: "Has Access To All Users In Group" },
+        access_to_all_users_in_group: { ...ClientAccessCapabilitiesSchema, label: "Access To All Users In Group" },
         /**
-         * List of user IDs, this user can access in the group
+         * Per-subset: different capabilities for clients assigned to specific users.
+         * Each entry lists user IDs and the capabilities granted for those users' clients.
          */
-        has_access_to_user_ids: {
+        access_to_user_entries: {
             type: "array" as const,
-            label: "Has Access To data assigned to Users",
-            itemSchema: { type: "string" as const }
-        },
+            label: "Access To User Entries",
+            itemSchema: ClientAccessUserEntrySchema
+        } as const satisfies ArraySchema,
         /**
-         * User can access data for all sub groups
+         * Capabilities for client data in any sub-group of the user's group.
          */
-        has_access_to_all_sub_groups: { type: "boolean" as const, label: "Has Access To All Sub Groups" },
+        access_to_all_sub_groups: { ...ClientAccessCapabilitiesSchema, label: "Access To All Sub Groups" },
         /**
-         * If HasAccessToAllSubGroups is false then contain list of sub groups user can access
-         * list of Group IDs Linkages, this user can access - e.g.  1.2.3, 1.2.4,
-         * An Admin user for example in head office may only have access to certain sub groups (1 level only).
+         * Per-subset: different capabilities for clients in specific sub-groups (e.g. 1.2.3, 1.2.4).
+         * Each entry lists group linkages and the capabilities granted for clients in those groups.
          */
-        has_access_to_sub_group_linkages: {
+        access_to_sub_group_entries: {
             type: "array" as const,
-            label: "Has Access To Sub Group Linkages",
-            itemSchema: { type: "string" as const }
-        },
+            label: "Access To Sub Group Entries",
+            itemSchema: ClientAccessGroupEntrySchema
+        } as const satisfies ArraySchema,
         is_advisor: { type: "boolean" as const, label: "Is Advisor" },
         advisor: { ...AdvisorSchema, label: "Advisor" },
         financial_service_roles: { ...FinancialServiceRolesSchema, label: "Financial Service Roles" },
@@ -140,4 +193,8 @@ export type Advisor = SchemaToType<typeof AdvisorSchema>;
 export type FinancialServiceRoles = SchemaToType<typeof FinancialServiceRolesSchema>;
 export type InitialCheck = SchemaToType<typeof InitialCheckSchema>;
 export type UserCalendarSync = SchemaToType<typeof UserCalendarSyncSchema>;
+export type AccessLevel = SchemaToType<typeof AccessLevelSchema>;
+export type ClientAccessCapabilities = SchemaToType<typeof ClientAccessCapabilitiesSchema>;
+export type ClientAccessUserEntry = SchemaToType<typeof ClientAccessUserEntrySchema>;
+export type ClientAccessGroupEntry = SchemaToType<typeof ClientAccessGroupEntrySchema>;
 

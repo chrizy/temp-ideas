@@ -1,23 +1,28 @@
 import type { Schema } from "~/models/base_schema_types";
 import { validateObject, type ValidationResult } from "~/utils/validation";
 import { generateAuditDiff } from "~/utils/audit";
-import type { UserSession } from "./client";
+import type { UserSession } from "./UserSession";
 import { parseTableRow, serializeEntity, type TableRow } from "~/models/common/table";
 
 /**
- * Valid table names for SQL injection protection
+ * Valid table names — use this union type for static checking (no runtime validation).
  */
-const VALID_TABLE_NAMES = ["clients", "client_dependants", "users", "groups", "accounts"] as const;
-type TableName = typeof VALID_TABLE_NAMES[number];
+type TableName = "clients" | "client_dependants" | "users" | "groups" | "accounts";
 
-/**
- * Validates table name to prevent SQL injection
- */
-function validateTableName(tableName: string): asserts tableName is TableName {
-    if (!VALID_TABLE_NAMES.includes(tableName as TableName)) {
-        throw new Error(`Invalid table name: ${tableName}. Must be one of: ${VALID_TABLE_NAMES.join(", ")}`);
-    }
-}
+/** Keys set by the DB or by processCreate; omit these when passing data to create a new record. */
+const CREATED_BY_SYSTEM_KEYS = [
+    "id",
+    "account_id",
+    "created_at",
+    "updated_at",
+    "created_by",
+    "created_by_user_type",
+    "updated_by",
+    "version",
+] as const;
+
+/** Payload type for creating a new entity: entity type minus system-managed fields (id, version, tracking, etc.). */
+export type CreateInput<T> = Omit<T, (typeof CREATED_BY_SYSTEM_KEYS)[number]>;
 
 /**
  * Read an entity from the database
@@ -26,15 +31,13 @@ function validateTableName(tableName: string): asserts tableName is TableName {
  * @param entityId - Entity ID to retrieve
  * @param accountId - Account ID for tenant isolation
  * @returns The parsed entity (id from DB row), or null if not found
- * @throws Error if table name is invalid
  */
 export async function readEntity<T extends { id?: number | null }>(
     db: D1Database,
-    tableName: string,
+    tableName: TableName,
     entityId: number,
     accountId: number
-): Promise<{ entity: T & { id: number } } | null> {
-    validateTableName(tableName);
+): Promise<T | null> {
 
     const result = await db.prepare(
         `SELECT id, body, account_id FROM ${tableName} WHERE id = ? AND account_id = ?`
@@ -51,9 +54,7 @@ export async function readEntity<T extends { id?: number | null }>(
         return null;
     }
 
-    return {
-        entity
-    };
+    return entity;
 }
 
 /**
@@ -70,13 +71,12 @@ export async function readEntity<T extends { id?: number | null }>(
  */
 export async function processUpdate<T extends Record<string, any> & { id: number; version: number; account_id: number }>(
     db: D1Database,
-    tableName: string,
+    tableName: TableName,
     entityData: T,
     userSession: UserSession,
     schema: Schema,
     entityName: string
 ): Promise<{ success: true; entity: T } | { success: false; validation: ValidationResult }> {
-    validateTableName(tableName);
 
     // Extract entity ID from entityData
     const entityId = entityData.id;
@@ -91,7 +91,7 @@ export async function processUpdate<T extends Record<string, any> & { id: number
         throw new Error(`${entityName} with ID ${entityId} not found`);
     }
 
-    const existingEntity = existingResult.entity;
+    const existingEntity = existingResult;
 
     // Account ownership is already validated by WHERE clause in readEntity
     // This check is redundant but kept for explicit error messaging
@@ -124,6 +124,7 @@ export async function processUpdate<T extends Record<string, any> & { id: number
     const updatedData = {
         ...entityWithoutId,
         ...entityDataWithoutMeta,
+        id: entityId,
         // Preserve immutable tracking fields
         created_at: existingEntity.created_at,
         created_by_user_type: existingEntity.created_by_user_type,
@@ -180,7 +181,7 @@ export async function processUpdate<T extends Record<string, any> & { id: number
     // If 0 rows changed, another writer updated the record after we read it.
     if ((updateResult.meta?.changes ?? 0) === 0) {
         const latest = await readEntity<T>(db, tableName, entityId, userSession.account_id);
-        const otherUserId = latest?.entity?.updated_by ?? "unknown";
+        const otherUserId = latest?.updated_by ?? "unknown";
         return {
             success: false,
             validation: {
@@ -211,22 +212,22 @@ export async function processUpdate<T extends Record<string, any> & { id: number
  * @param schema - Schema for validation
  * @param entityName - Human-readable entity name for error messages
  * @returns Success with created entity, or validation errors in standardized format
- * @throws Error if database operation fails or table name is invalid
+ * @throws Error if database operation fails
  */
 export async function processCreate<T extends Record<string, any>>(
     db: D1Database,
-    tableName: string,
-    entityData: T,
+    tableName: TableName,
+    entityData: CreateInput<T>,
     userSession: UserSession,
     schema: Schema,
     entityName: string
 ): Promise<{ success: true; entity: T } | { success: false; validation: ValidationResult }> {
-    validateTableName(tableName);
 
-    // Set base tracking fields (id will be generated by database)
+    // Set base tracking fields (id placeholder for validation; real id from DB after insert)
     const now = new Date().toISOString();
     const entityWithTracking = {
         ...entityData,
+        id: 0,
         account_id: userSession.account_id,
         created_at: now,
         updated_at: now,
@@ -234,7 +235,7 @@ export async function processCreate<T extends Record<string, any>>(
         created_by_user_type: userSession.user_type_key,
         updated_by: userSession.user_id,
         version: 1
-    } as T;
+    } as unknown as T;
 
     // Validate the entity data
     const validationResult = validateObject(schema, entityWithTracking);
@@ -272,7 +273,7 @@ export async function processCreate<T extends Record<string, any>>(
     const finalEntity = {
         ...validationResult.value,
         id: entityId
-    } as T;
+    } as unknown as T;
 
     return {
         success: true,
