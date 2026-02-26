@@ -4,13 +4,18 @@ import { generateAuditDiff } from "~/utils/audit";
 import type { UserSession } from "./UserSession";
 import { parseTableRow, serializeEntity, type TableRow } from "~/models/common/table";
 
+/** Returns current UTC time in schema datetime format (YYYY-MM-DD HH:MM:SS). */
+function nowDatetime(): string {
+    return new Date().toISOString().replace("T", " ").slice(0, 19);
+}
+
 /**
- * Valid table names — use this union type for static checking (no runtime validation).
+ * Valid table names — use this union for static checking. Do not interpolate arbitrary strings into SQL.
  */
-type TableName = "clients" | "client_dependants" | "users" | "groups" | "accounts";
+export type TableName = "clients" | "client_dependants" | "users" | "groups" | "accounts";
 
 /** Keys set by the DB or by processCreate; omit these when passing data to create a new record. */
-const CREATED_BY_SYSTEM_KEYS = [
+export const CREATED_BY_SYSTEM_KEYS = [
     "id",
     "account_id",
     "created_at",
@@ -21,99 +26,100 @@ const CREATED_BY_SYSTEM_KEYS = [
     "version",
 ] as const;
 
-/** Payload type for creating a new entity: entity type minus system-managed fields (id, version, tracking, etc.). */
+/** Payload for creating a new entity: entity type minus system-managed fields. */
 export type CreateInput<T> = Omit<T, (typeof CREATED_BY_SYSTEM_KEYS)[number]>;
 
+/** Minimum shape required for processUpdate; tracking fields are always set on create/update. */
+export type EntityWithTracking = {
+    id: number;
+    account_id: number;
+    version: number;
+    created_at: string;
+    updated_at: string;
+    created_by: string;
+    created_by_user_type: string;
+    updated_by: string;
+    [key: string]: unknown;
+};
+
+/** Result of processCreate or processUpdate. */
+export type EntityMutationResult<T> =
+    | { success: true; entity: T }
+    | { success: false; validation: ValidationResult };
+
+function versionConflictValidation(entityName: string, other = "unknown"): { success: false; validation: ValidationResult } {
+    return {
+        success: false,
+        validation: {
+            isValid: false,
+            errors: [{
+                path: ["version"],
+                message: `Another user (${other}) has updated this ${entityName.toLowerCase()}. Please refresh and try again.`,
+                fieldLabel: "Version"
+            }]
+        }
+    };
+}
+
 /**
- * Read an entity from the database
+ * Read an entity from the database by id and account (tenant isolation).
+ *
  * @param db - D1Database instance
- * @param tableName - Name of the table (e.g., "clients", "users", "groups")
+ * @param tableName - Table name (must be a valid TableName)
  * @param entityId - Entity ID to retrieve
  * @param accountId - Account ID for tenant isolation
- * @returns The parsed entity (id from DB row), or null if not found
+ * @returns Parsed entity with id from the row, or null if not found
  */
-export async function readEntity<T extends { id?: number | null }>(
+export async function readEntity<T extends { id?: number | null; updated_by: string }>(
     db: D1Database,
     tableName: TableName,
     entityId: number,
     accountId: number
 ): Promise<T | null> {
-
-    const result = await db.prepare(
-        `SELECT id, body, account_id FROM ${tableName} WHERE id = ? AND account_id = ?`
-    )
+    const result = await db
+        .prepare(`SELECT id, body, account_id FROM ${tableName} WHERE id = ? AND account_id = ?`)
         .bind(entityId, accountId)
         .first<TableRow>();
 
-    if (!result) {
-        return null;
-    }
+    if (!result) return null;
 
     const entity = parseTableRow<T & { id: number }>(result);
-    if (!entity) {
-        return null;
-    }
-
-    return entity;
+    return entity ?? null;
 }
 
 /**
- * Common update logic for all entity types
- * Handles validation, version checking, account validation, and audit generation
+ * Update an existing entity: validation, optimistic locking, and audit diff.
+ *
  * @param db - D1Database instance
- * @param tableName - Name of the table (e.g., "clients", "users", "groups")
- * @param entityData - The updated entity data (must contain id and version from existing entity)
- * @param userSession - User session containing user_id, account_id, and db_shard_id
+ * @param tableName - Table name (must be a valid TableName)
+ * @param entityData - Full entity with id, version, and account_id from existing record
+ * @param userSession - User session (user_id, account_id, db_shard_id)
  * @param schema - Schema for validation
- * @param entityName - Human-readable entity name for error messages
- * @returns Success with updated entity, or validation errors in standardized format
- * @throws Error if entity not found, unauthorized access, or database operation fails
+ * @param entityName - Human-readable name for error messages
+ * @returns Success with updated entity, or validation (including version conflict)
+ * @throws Error if entity not found, unauthorized, or database operation fails
  */
-export async function processUpdate<T extends Record<string, any> & { id: number; version: number; account_id: number }>(
+export async function processUpdate<T extends EntityWithTracking>(
     db: D1Database,
     tableName: TableName,
     entityData: T,
     userSession: UserSession,
     schema: Schema,
     entityName: string
-): Promise<{ success: true; entity: T } | { success: false; validation: ValidationResult }> {
-
-    // Extract entity ID from entityData
+): Promise<EntityMutationResult<T>> {
     const entityId = entityData.id;
-    if (!entityId) {
-        throw new Error(`${entityName} ID is required`);
-    }
+    if (!entityId) throw new Error(`${entityName} ID is required`);
 
-    // Read existing entity from database
-    const existingResult = await readEntity<T>(db, tableName, entityId, userSession.account_id);
+    const existingEntity = await readEntity<T>(db, tableName, entityId, userSession.account_id);
+    if (!existingEntity) throw new Error(`${entityName} with ID ${entityId} not found`);
 
-    if (!existingResult) {
-        throw new Error(`${entityName} with ID ${entityId} not found`);
-    }
-
-    const existingEntity = existingResult;
-
-    // Account ownership is already validated by WHERE clause in readEntity
-    // This check is redundant but kept for explicit error messaging
     if (existingEntity.account_id !== userSession.account_id) {
         throw new Error(`Unauthorized: ${entityName} does not belong to your account`);
     }
 
     const expectedVersion = entityData.version;
-    // Check version for optimistic concurrency control
-    if ((existingEntity as any).version !== expectedVersion) {
-        const otherUserId = existingEntity.updated_by ?? "unknown";
-        return {
-            success: false,
-            validation: {
-                isValid: false,
-                errors: [{
-                    path: ["version"],
-                    message: `Another user (${otherUserId}) has updated this ${entityName.toLowerCase()}. Please refresh and try again.`,
-                    fieldLabel: "Version"
-                }]
-            }
-        };
+    if (existingEntity.version !== expectedVersion) {
+        return versionConflictValidation(entityName, existingEntity.updated_by);
     }
 
     // Merge with existing data, preserving tracking fields
@@ -132,7 +138,7 @@ export async function processUpdate<T extends Record<string, any> & { id: number
         // Increment version
         version: existingEntity.version + 1,
         // Update mutable tracking fields
-        updated_at: new Date().toISOString(),
+        updated_at: nowDatetime(),
         updated_by: userSession.user_id,
         // Ensure account_id matches user session
         account_id: userSession.account_id
@@ -178,21 +184,9 @@ export async function processUpdate<T extends Record<string, any> & { id: number
         throw new Error(`Failed to update ${entityName} in database`);
     }
 
-    // If 0 rows changed, another writer updated the record after we read it.
     if ((updateResult.meta?.changes ?? 0) === 0) {
         const latest = await readEntity<T>(db, tableName, entityId, userSession.account_id);
-        const otherUserId = latest?.updated_by ?? "unknown";
-        return {
-            success: false,
-            validation: {
-                isValid: false,
-                errors: [{
-                    path: ["version"],
-                    message: `Another user (${otherUserId}) has updated this ${entityName.toLowerCase()}. Please refresh and try again.`,
-                    fieldLabel: "Version"
-                }]
-            }
-        };
+        return versionConflictValidation(entityName, latest?.updated_by);
     }
 
     return {
@@ -202,32 +196,29 @@ export async function processUpdate<T extends Record<string, any> & { id: number
 }
 
 /**
- * Common create logic for all entity types
- * Handles validation, setting base tracking fields, and database insertion
- * Auto-generated IDs are always integers and come from the database
+ * Create a new entity: validation, tracking fields, and insert.
+ *
  * @param db - D1Database instance
- * @param tableName - Name of the table (e.g., "clients", "users", "groups")
- * @param entityData - The entity data to create (without tracking fields)
- * @param userSession - User session containing user_id, account_id, and db_shard_id
+ * @param tableName - Table name (must be a valid TableName)
+ * @param entityData - Entity data without system fields (use CreateInput&lt;T&gt;)
+ * @param userSession - User session (user_id, account_id, user_type_key)
  * @param schema - Schema for validation
- * @param entityName - Human-readable entity name for error messages
- * @returns Success with created entity, or validation errors in standardized format
- * @throws Error if database operation fails
+ * @param entityName - Human-readable name for error messages
+ * @returns Success with created entity (including generated id), or validation errors
+ * @throws Error if insert fails or generated id is missing
  */
-export async function processCreate<T extends Record<string, any>>(
+export async function processCreate<T extends Record<string, unknown>>(
     db: D1Database,
     tableName: TableName,
     entityData: CreateInput<T>,
     userSession: UserSession,
     schema: Schema,
     entityName: string
-): Promise<{ success: true; entity: T } | { success: false; validation: ValidationResult }> {
-
-    // Set base tracking fields (id placeholder for validation; real id from DB after insert)
-    const now = new Date().toISOString();
+): Promise<EntityMutationResult<T>> {
+    const now = nowDatetime();
     const entityWithTracking = {
         ...entityData,
-        id: 0,
+        id: 0, // placeholder for validation; real id from DB after insert
         account_id: userSession.account_id,
         created_at: now,
         updated_at: now,

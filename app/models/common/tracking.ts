@@ -15,22 +15,27 @@ export const TrackingSchema = {
         updated_by: {
             type: "user_id" as const,
             label: "Last Updated By",
+            validation: { required: true }
         },
         updated_at: {
             type: "datetime" as const,
-            label: "Last Updated At"
+            label: "Last Updated At",
+            validation: { required: true }
         },
         created_by: {
             type: "user_id" as const,
             label: "Created By",
+            validation: { required: true }
         },
         created_at: {
             type: "datetime" as const,
-            label: "Created At"
+            label: "Created At",
+            validation: { required: true }
         },
         created_by_user_type: {
             type: "enum" as const,
             label: "Created By User Type Key",
+            validation: { required: true },
             options: {
                 client: "Client",
                 introducer: "Introducer",
