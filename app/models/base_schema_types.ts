@@ -104,6 +104,8 @@ export type ObjectSchema = {
     validation?: ObjectValidation;
     /** Optional function to compute a description string for this object */
     description?: (value: any) => string;
+    /** Optional function to clear invalid/conditional data on save (e.g. clear previous name when has_name_changed is false) */
+    clearInvalidData?: (value: any) => any;
 };
 
 export type ArraySchema = {
@@ -129,6 +131,8 @@ export type UnionSchema = {
     validation?: UnionValidation;
     /** Optional function to compute a description string for this union */
     description?: (value: any) => string;
+    /** Optional function to clear invalid/conditional data on save (e.g. clear previous name when has_name_changed is false) */
+    clearInvalidData?: (value: any) => any;
 };
 
 export type Schema =
@@ -138,7 +142,6 @@ export type Schema =
     | EnumSchema
     | DateSchema
     | DateTimeSchema
-    | ArraySchema
     | ArraySchema
     | ObjectSchema
     | UnionSchema

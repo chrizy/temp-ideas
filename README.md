@@ -1,223 +1,76 @@
 # Architecture Summary
 
-Each tenant receives:
+Multi-tenant SaaS on Cloudflare: **multiple tenants (accounts) are batched into a single deployed instance** (one Worker + one D1 database per shard). The **account DB is a separate D1 used by all tenants**; it holds the account table (including `db_shard_id`) and routes each account to the correct data shard. Each shard stores groups, users, clients, and other shared data for all tenants on that shard. Larger customers can be given a **dedicated Worker + dedicated D1** (their own shard) for isolation and scale.
 
-- 1 Cloudflare Worker
-- 1 D1 database (primary store)
-- 1 KV namespace (safe read cache)
-- (Optional) 1 Durable Object (in-memory hot cache)
+## Key requirements
 
-This design supports:
+- **Up to 4000 concurrent UK-only users per tenant**
+- **~5 GB per tenant over 10 years** (document-centric client management)
+- **Low cost** — shared instances for small/medium tenants; dedicated only where needed
+- **High isolation** — per-tenant data keyed by `account_id`; large customers get dedicated Worker + D1
+- **UK data residency** — compute in UK PoPs; D1 replication limited to EU region group; GDPR compliant; data does not leave Europe
 
-- Up to 4000 concurrent UK-only users per tenant
-- Document-style JSON storage
-- Indexed fields via SQL computed columns
-- Strong consistency using D1 session bookmarks
-- Fast reads via replicas and KV-safe caching
-- Low operational cost
-- High isolation between tenants
+## Tenancy and Sharding
 
-## 2. Storage Model
+- **Account DB (single D1, all tenants)**: Holds the account table (`id`, `name`, `db_shard_id`, `is_active`, etc.). Used by every tenant to resolve which data shard to use. No tenant data (groups, users, clients) lives here.
+- **Data shards**: Many tenants (`account_id`) share one Worker and one D1 per shard. Tables are multi-tenant (e.g. `account_id` in every table; see composite keys in the DB rules).
+- **Shared shard contents**: On a given shard, groups, users, clients, and related data live together; rows are distinguished by `account_id`.
+- **Dedicated instances**: Larger or high-touch customers get their own Worker + D1 (and thus their own `db_shard_id`), with no sharing.
 
-### 2.1 Primary Store — D1 (SQLite)
+This supports:
 
-- Every tenant gets a dedicated D1 instance.
-- D1 is used as the authoritative, persistent data store.
+- Cost-effective density for small/medium tenants
+- Strong isolation and dedicated resources for large accounts
+- Document-style JSON storage with indexed fields (see rules below)
+- UK data residency and GDPR (see Key requirements above)
 
-### 2.2 Table-Per-Collection Structure
+## Storage and Schema (D1)
 
-Each collection in the tenant’s document store maps to a dedicated SQL table. Example:
+Primary store is **D1 (SQLite)**. Schema pattern: JSON document in `body`, with generated columns and indexes only for fields you query/filter/sort. Multitenancy uses composite keys (e.g. `account_id` + entity id).
 
-```
-CREATE TABLE clients (
-  id TEXT PRIMARY KEY,
-  body TEXT NOT NULL,  -- JSON document
+**Do not duplicate the full schema rules here.** See:
 
-  -- Indexed fields as computed columns
-  first_name TEXT GENERATED ALWAYS AS (json_extract(body, '$.name.first')) STORED,
-  last_name  TEXT GENERATED ALWAYS AS (json_extract(body, '$.name.last')) STORED,
-  postcode   TEXT GENERATED ALWAYS AS (json_extract(body, '$.address.postcode')) STORED,
+- **`.cursor/rules/d1-sql-json-body.mdc`** — JSON body, generated columns, indexes, and multitenancy (e.g. `UNIQUE (account_id, <entity_id>)`). All D1 table design should follow that rule.
 
-  updated_at INTEGER NOT NULL,
-  _version   INTEGER NOT NULL DEFAULT 0
-);
+## Caching (Optional)
 
-CREATE INDEX idx_clients_last_name ON clients(last_name);
-CREATE INDEX idx_clients_postcode  ON clients(postcode);
-```
+A KV namespace can be used as a **safe read cache** (e.g. invalidated on writes, used only when consistent with D1). Durable Objects are **not** used in this design.
 
-Benefits:
+## Consistency
 
-- True document-style storage (JSON body)
-- Automatic indexing using computed columns
-- Very fast lookups and structured queries
-- Ideal for consistent, schema-lite applications
+Strong consistency can be achieved using D1 session bookmarks: writes return a bookmark; readers send it so replicas serve read-after-write. Important for financial and compliance workloads.
 
-## 3. Document Handling
-
-### 3.1 Document Format
-
-Documents are stored as JSON in the `body` column.
-
-### 3.2 Indexed Fields
-
-Indexed fields use SQLite generated columns:
-
-- Always derived from JSON
-- Automatically updated on insert/update
-- Fully indexable
-- Zero application logic required for extraction
-
-### 3.3 Versioning
-
-A `_version` counter increments on every write to support:
-
-- Consistency checking
-- Cache invalidation
-- Optimistic UI flows
-
-## 4. Consistency Model
-
-Strong consistency is achieved using D1 Session Bookmarks.
-
-**Write**  
-Every write returns a bookmark header: `x-d1-bookmark: <opaque-token>`
-
-**Subsequent reads**
-
-- Reader includes the bookmark.
-- D1 routes the query to a replica containing the write.
-- Guarantees read-my-writes even across regions.
-
-This is essential for financial and compliance workloads.
-
-## 5. Caching Layer (Optional)
-
-Each tenant receives a dedicated KV namespace for read caching.
-
-KV-safe cache wrapper:
-
-- KV is used only when consistent.
-- KV is automatically invalidated on writes.
-- Bookmarks override KV to avoid stale reads.
-- Reads fall back to D1 if KV cannot guarantee freshness.
-
-This improves performance without risking financial correctness.
-
-## 6. Optional Durable Object Hot Cache
-
-Durable Objects are not required but can be added later to provide:
-
-- 0.3–1 ms hot in-memory reads
-- Locking/coordination for complex multi-step writes
-- Per-tenant in-memory session state
-- Rate limiting or shared counters
-
-DOs only store in-memory state—persistent data stays in D1.
-
-## 7. Performance and Scaling
-
-**Concurrency**
-
-- Up to 4000 concurrent users per tenant
-- Worker auto-scales without per-tenant contention
-- D1 replica reads scale horizontally
-- Per-tenant isolation ensures predictable performance
-
-**Latency (UK-only usage)**
-
-- Compute (Worker): 1–3 ms
-- D1 read (replica): 1–4 ms
-- D1 write: 5–10 ms
-- KV safe read: 0.2–2 ms
-- DO hot read (optional): 0.3–1 ms
-
-**Storage**
-
-- Designed for ~5GB per tenant over 10 years
-- Ideal for document-centric client management workloads
-
-## 8. Data Residency
-
-- All compute runs in UK PoPs (LHR, MAN, EDI)
-- D1 replication is limited to Cloudflare’s EU region group
-- Fully GDPR compliant
-- Data never leaves Europe
-
-## 9. Querying a Collection
-
-**Fetch by indexed field**
+## High-Level Picture
 
 ```
-SELECT body FROM clients WHERE last_name = 'Smith';
+                    UK Users (up to 4000 concurrent per tenant)
+                        │
+              Tenant / Custom Domain
+                        │
+              ┌─────────────────────┐
+              │  Worker (shared or  │
+              │  dedicated per tier) │
+              └─────────────────────┘
+                        │
+         ┌──────────────┼──────────────┬──────────────┐
+         │              │              │              │
+   Account D1      Shard A         Shard B      Shard C (e.g. large customer)
+   (D1, all        (D1)            (D1)         (D1)
+    tenants)       account_id      account_id   single account_id
+   account table   ├ groups        ├ groups     ├ groups
+   db_shard_id →   ├ users         ├ users      ├ users
+                   ├ clients       ├ clients    ├ clients
+                   └ ...           └ ...        └ ...
 ```
 
-**Prefix search**
+**Account D1** (single DB, all tenants): `account` table with `id`, `name`, `db_shard_id`, `is_active`, etc. — routes each account to the correct data shard. **Data shards** hold groups, users, clients keyed by `account_id`.
 
-```
-SELECT body FROM clients WHERE postcode LIKE 'SW1%';
-```
+## Summary
 
-**Cross-collection join**
+- **No Durable Objects**; optional KV for safe read caching.
+- **Account DB**: separate D1 used by all tenants; account table holds `db_shard_id`. **Multi-tenant data**: many `account_id`s per Worker + data shard D1.
+- **Shared shard**: groups, users, clients (and related data) in one D1, keyed by `account_id`.
+- **Dedicated path**: larger customers get their own Worker + D1.
+- **D1 schema**: follow `.cursor/rules/d1-sql-json-body.mdc` (JSON body, generated columns, indexes, composite keys).
 
-```
-SELECT c.body, f.body
-FROM clients c
-JOIN finances f ON c.id = f.client_id
-WHERE c.last_name = 'Smith';
-```
-
-This provides Mongo-like document flexibility with SQL query power.
-
-## 10. Tenancy Model
-
-Each tenant maps as follows:
-
-```
-Tenant → Worker → D1 Database → KV Namespace → (Optional DO)
-```
-
-Benefits:
-
-- No noisy neighbors
-- Independent schema evolution per tenant
-- Guaranteed performance isolation
-- Easy scaling with more tenants
-
-## 11. High-Level Architecture Diagram
-
-```
-           UK Users (4000 concurrent)
-                    │
-            Tenant Custom Domain
-                    │
-            ┌───────────────────┐
-            │ Tenant Worker     │
-            └───────────────────┘
-                 │        │
-                 │        └── (optional) Durable Object
-                 │
-          KV Namespace (safe read cache)
-                 │
-            D1 Database (per tenant)
-          ┌──────────────┬───────────────┬───────────────┐
-          │ clients tbl   │ orders tbl    │ notes tbl      │ ...
-          │ (computed cols│ (computed cols│ (computed cols │
-          │  + indexes)   │   + indexes)  │   + indexes)   │
-          └──────────────┴───────────────┴───────────────┘
-```
-
-## 12. Summary
-
-This architecture provides:
-
-- Mongo-style document storage
-- SQL performance + indexing
-- Tenant-level isolation
-- Strong correctness (D1 bookmarks)
-- Low latency for UK users
-- Scalability to thousands of tenants
-- Safe optional caching
-- Future-proof extension via DOs
-
-It is optimized for financial, compliance-heavy, and highly concurrent SaaS workloads.
+Optimized for document-centric, compliance-aware SaaS with flexible tenant density and scale.

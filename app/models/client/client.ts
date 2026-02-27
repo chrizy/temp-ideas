@@ -604,6 +604,11 @@ const ClientBaseFields = {
         label: "Client Primary Advisor ID",
         validation: { required: true }
     },
+    /** Whether the client has any relationship to the firm or advisor (when false, client_relationships is cleared on save) */
+    has_client_relationship_to_firm_or_advisor: {
+        type: "boolean" as const,
+        label: "Has Client Relationship to Firm or Advisor"
+    },
     /** Relationships between this client and other clients (individuals or companies) */
     client_relationships: {
         type: "array" as const,
@@ -974,6 +979,57 @@ const CompanyClientVariant = {
     }
 } as const satisfies UnionVariant<"client_type", "company">;
 
+/** Data cleanup on save: clear invalid/conditional fields based on other values. */
+function clientClearInvalidData(client: any): any {
+    if (!client || typeof client !== "object") return client;
+    const out: Client = { ...client };
+
+    if ((client as Client).client_type === "individual") {
+        // If name has not changed, clear all previous name fields
+        if (out.has_name_changed === false) {
+            out.previous_first_name = undefined;
+            out.previous_middle_names = undefined;
+            out.previous_last_name = undefined;
+            out.name_changed_date = undefined;
+        }
+        // If not dual nationality, clear second nationality
+        if (out.has_dual_nationality === false) {
+            out.nationality_secondary = undefined;
+        }
+        // If not previously smoked/used nicotine, clear quit date
+        if (out.nicotine_use !== "previously_smoked_or_used_nicotine_products") {
+            out.nicotine_use_quit_date = undefined;
+        }
+        // If not current smoker or current user, clear nicotine type, count, start date
+        if (
+            out.nicotine_use !== "current_smoker" &&
+            out.nicotine_use !== "current_user_of_nicotine_products"
+        ) {
+            out.nicotine_product_type = undefined;
+            out.nicotine_consumption_daily_count = undefined;
+            out.nicotine_use_start_date = undefined;
+        }
+        // If intended retirement age <= state pension age, clear retirement plausibility fields
+        const spa = out.state_pension_age;
+        const ira = out.intended_retirement_age;
+        if (
+            typeof spa === "number" &&
+            typeof ira === "number" &&
+            ira <= spa
+        ) {
+            out.intended_retirement_age_past_state_plausibility = undefined;
+            out.intended_retirement_age_past_state_plausibility_note = undefined;
+        }
+    }
+
+    // If no client relationship to firm/advisor, clear relationship array (both individual and company)
+    if (out.has_client_relationship_to_firm_or_advisor === false) {
+        out.client_relationships = [];
+    }
+
+    return out;
+}
+
 /** Represents a client - either an individual person or a company. */
 export const ClientSchema = {
     type: "union" as const,
@@ -990,6 +1046,7 @@ export const ClientSchema = {
             return name || "Unnamed Client";
         }
     },
+    clearInvalidData: clientClearInvalidData,
     variants: [
         IndividualClientVariant,
         CompanyClientVariant

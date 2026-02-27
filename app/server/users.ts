@@ -1,7 +1,7 @@
 import { UserSchema, type User } from "~/models/admin/user";
 import { GroupSchema, type Group } from "~/models/admin/group";
 import { type ValidationResult } from "~/utils/validation";
-import { processUpdate, readEntity, processCreate } from "./db-utils";
+import { processUpdate, readEntity, processCreate, type CreateInput } from "./db-utils";
 import type { UserSession } from "./UserSession";
 
 /**
@@ -21,13 +21,13 @@ export class UserDB {
      * @returns The created user with generated ID and tracking fields
      */
     async create(
-        userData: Omit<User, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id" | "is_deleted">,
+        userData: CreateInput<User>,
         userSession: UserSession
     ): Promise<{ success: true; user: User } | { success: false; validation: ValidationResult }> {
         const result = await processCreate(
             this.db,
             "users",
-            userData as any,
+            userData,
             userSession,
             UserSchema,
             "User"
@@ -89,13 +89,13 @@ export class GroupDB {
      * @returns The created group with generated ID and tracking fields
      */
     async create(
-        groupData: Omit<Group, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "version" | "account_id">,
+        groupData: CreateInput<Group>,
         userSession: UserSession
     ): Promise<{ success: true; group: Group } | { success: false; validation: ValidationResult }> {
         const result = await processCreate(
             this.db,
             "groups",
-            groupData as any,
+            groupData,
             userSession,
             GroupSchema,
             "Group"

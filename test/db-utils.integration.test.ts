@@ -50,7 +50,7 @@ describe("db-utils (D1 integration)", () => {
 
     expect(createResult.success).toBe(true);
     if (!createResult.success) throw new Error("expected success");
-    const created = createResult.entity as unknown as { id: number; first_name: string; last_name: string };
+    const created = createResult.entity;
     expect(created.id).toBeGreaterThan(0);
     expect(created.first_name).toBe("Jane");
     expect(created.last_name).toBe("Doe");
@@ -109,5 +109,171 @@ describe("db-utils (D1 integration)", () => {
     expect(individualAfter.first_name).toBe("Janet");
     expect(individualAfter.last_name).toBe("Smith");
     expect((readAfterUpdate as { version: number }).version).toBe((readResult as { version: number }).version + 1);
+  });
+
+  it("rejects IndividualClient create when validation fails (max length, min length)", async () => {
+    const db = env.CUST_DB1;
+    const accountId = 1001;
+    const session = makeSession({ account_id: accountId });
+
+    const clientData: CreateInput<IndividualClient> = {
+      client_type: "individual" as const,
+      primary_advisor_id: "adv-1",
+      group_id: "grp-1",
+      first_name: "x".repeat(201),
+      last_name: "A",
+      client_relationships: [],
+    };
+
+    const createResult = await processCreate(
+      db,
+      "clients",
+      clientData,
+      session,
+      ClientSchema,
+      "Client"
+    );
+
+    expect(createResult.success).toBe(false);
+    if (createResult.success) throw new Error("expected validation failure");
+    expect(createResult.validation.isValid).toBe(false);
+    expect(createResult.validation.errors.length).toBeGreaterThan(0);
+
+    const paths = createResult.validation.errors.map((e) => e.path.join("."));
+    expect(paths).toContain("first_name");
+    expect(paths).toContain("last_name");
+
+    const firstNameError = createResult.validation.errors.find(
+      (e) => e.path.join(".") === "first_name"
+    );
+    const lastNameError = createResult.validation.errors.find(
+      (e) => e.path.join(".") === "last_name"
+    );
+    expect(firstNameError?.message).toMatch(/200|max|length/i);
+    expect(lastNameError?.message).toMatch(/2|min|length/i);
+  });
+
+  it("rejects IndividualClient create when DOB is invalid (future or before 1900)", async () => {
+    const db = env.CUST_DB1;
+    const accountId = 1001;
+    const session = makeSession({ account_id: accountId });
+
+    const futureDob: CreateInput<IndividualClient> = {
+      client_type: "individual" as const,
+      primary_advisor_id: "adv-1",
+      group_id: "grp-1",
+      first_name: "Jane",
+      last_name: "Doe",
+      dob: "2030-06-15",
+      client_relationships: [],
+    };
+
+    const futureResult = await processCreate(
+      db,
+      "clients",
+      futureDob,
+      session,
+      ClientSchema,
+      "Client"
+    );
+
+    expect(futureResult.success).toBe(false);
+    if (futureResult.success) throw new Error("expected validation failure");
+    expect(futureResult.validation.isValid).toBe(false);
+    const futurePaths = futureResult.validation.errors.map((e) => e.path.join("."));
+    expect(futurePaths).toContain("dob");
+    const futureDobError = futureResult.validation.errors.find((e) => e.path.join(".") === "dob");
+    expect(futureDobError?.message).toMatch(/future|before|after/i);
+
+    const before1900: CreateInput<IndividualClient> = {
+      client_type: "individual" as const,
+      primary_advisor_id: "adv-1",
+      group_id: "grp-1",
+      first_name: "Jane",
+      last_name: "Doe",
+      dob: "1899-12-31",
+      client_relationships: [],
+    };
+
+    const beforeResult = await processCreate(
+      db,
+      "clients",
+      before1900,
+      session,
+      ClientSchema,
+      "Client"
+    );
+
+    expect(beforeResult.success).toBe(false);
+    if (beforeResult.success) throw new Error("expected validation failure");
+    expect(beforeResult.validation.isValid).toBe(false);
+    const beforePaths = beforeResult.validation.errors.map((e) => e.path.join("."));
+    expect(beforePaths).toContain("dob");
+    const beforeDobError = beforeResult.validation.errors.find((e) => e.path.join(".") === "dob");
+    expect(beforeDobError?.message).toMatch(/1900|after|before|on or after/i);
+  });
+
+  it("rejects IndividualClient create when number field is out of range (min/max)", async () => {
+    const db = env.CUST_DB1;
+    const accountId = 1001;
+    const session = makeSession({ account_id: accountId });
+
+    const overMax: CreateInput<IndividualClient> = {
+      client_type: "individual" as const,
+      primary_advisor_id: "adv-1",
+      group_id: "grp-1",
+      first_name: "Jane",
+      last_name: "Doe",
+      state_pension_age: 150,
+      client_relationships: [],
+    };
+
+    const overResult = await processCreate(
+      db,
+      "clients",
+      overMax,
+      session,
+      ClientSchema,
+      "Client"
+    );
+
+    expect(overResult.success).toBe(false);
+    if (overResult.success) throw new Error("expected validation failure");
+    expect(overResult.validation.isValid).toBe(false);
+    const overPaths = overResult.validation.errors.map((e) => e.path.join("."));
+    expect(overPaths).toContain("state_pension_age");
+    const overError = overResult.validation.errors.find(
+      (e) => e.path.join(".") === "state_pension_age"
+    );
+    expect(overError?.message).toMatch(/120|max|no more/i);
+
+    const underMin: CreateInput<IndividualClient> = {
+      client_type: "individual" as const,
+      primary_advisor_id: "adv-1",
+      group_id: "grp-1",
+      first_name: "Jane",
+      last_name: "Doe",
+      intended_retirement_age: -5,
+      client_relationships: [],
+    };
+
+    const underResult = await processCreate(
+      db,
+      "clients",
+      underMin,
+      session,
+      ClientSchema,
+      "Client"
+    );
+
+    expect(underResult.success).toBe(false);
+    if (underResult.success) throw new Error("expected validation failure");
+    expect(underResult.validation.isValid).toBe(false);
+    const underPaths = underResult.validation.errors.map((e) => e.path.join("."));
+    expect(underPaths).toContain("intended_retirement_age");
+    const underError = underResult.validation.errors.find(
+      (e) => e.path.join(".") === "intended_retirement_age"
+    );
+    expect(underError?.message).toMatch(/0|min|at least/i);
   });
 });

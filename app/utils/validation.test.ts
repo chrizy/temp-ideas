@@ -409,6 +409,103 @@ describe("validateObject - Computed Values", () => {
       });
     });
 
+    describe("Client clearInvalidData on save", () => {
+      it("should clear previous name fields when has_name_changed is false", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          has_name_changed: false,
+          previous_first_name: "OldFirst",
+          previous_last_name: "OldLast",
+          name_changed_date: "2020-01-01",
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.previous_first_name).toBeUndefined();
+        expect(result.value.previous_last_name).toBeUndefined();
+        expect(result.value.name_changed_date).toBeUndefined();
+      });
+
+      it("should clear nationality_secondary when has_dual_nationality is false", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          has_dual_nationality: false,
+          nationality_secondary: "irish",
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.nationality_secondary).toBeUndefined();
+      });
+
+      it("should clear nicotine_use_quit_date when not previously smoked", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          nicotine_use: "never_smoked_or_used_nicotine_products",
+          nicotine_use_quit_date: "2020-01-01",
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.nicotine_use_quit_date).toBeUndefined();
+      });
+
+      it("should clear nicotine product fields when not current smoker/user", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          nicotine_use: "never_smoked_or_used_nicotine_products",
+          nicotine_product_type: "cigarettes",
+          nicotine_consumption_daily_count: 10,
+          nicotine_use_start_date: "2010-01-01",
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.nicotine_product_type).toBeUndefined();
+        expect(result.value.nicotine_consumption_daily_count).toBeUndefined();
+        expect(result.value.nicotine_use_start_date).toBeUndefined();
+      });
+
+      it("should clear retirement plausibility when intended_retirement_age <= state_pension_age", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          state_pension_age: 67,
+          intended_retirement_age: 65,
+          intended_retirement_age_past_state_plausibility: "other",
+          intended_retirement_age_past_state_plausibility_note: "Some note",
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.intended_retirement_age_past_state_plausibility).toBeUndefined();
+        expect(result.value.intended_retirement_age_past_state_plausibility_note).toBeUndefined();
+      });
+
+      it("should clear client_relationships when has_client_relationship_to_firm_or_advisor is false", () => {
+        const client = {
+          client_type: "individual" as const,
+          version: 1,
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1990-01-01",
+          has_client_relationship_to_firm_or_advisor: false,
+          client_relationships: [{ client_id: "x", relationship_context: "individual", relationship_type: "spouse" }],
+        };
+        const result = validateObject(ClientSchema, client);
+        expect(result.value.client_relationships).toEqual([]);
+      });
+    });
+
     describe("Description with Nested Objects", () => {
       it("should compute description for nested address objects", () => {
         const NestedSchema: Schema = {

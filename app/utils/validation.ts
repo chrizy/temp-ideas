@@ -9,12 +9,14 @@
  * 3. Provide user-friendly error messages with field labels and paths
  * 4. Skip validation for computed fields (system-generated, not user input)
  * 5. Recursively validate nested objects, arrays, and union variants
- * 6. Apply computed values after validation (derived fields calculated from input)
- * 7. Handle complex types: arrays expand to validate each item, unions resolve to variants
+ * 6. Apply schema clearInvalidData before validation (clear conditional/invalid fields on save)
+ * 7. Apply computed values after validation (derived fields calculated from input)
+ * 8. Handle complex types: arrays expand to validate each item, unions resolve to variants
  * 
  * How It Works:
  * - Schema defines validation rules per field type (validation property)
  * - validateObject() recursively traverses the schema and data structure
+ * - clearInvalidData (optional on object/union schemas) runs first to strip invalid/conditional data
  * - Each field type has a dedicated validator (validateString, validateNumber, etc.)
  * - Errors are collected with paths (e.g., ["addresses", 0, "street"]) and user-friendly labels
  * - Computed values are applied post-validation using registered computation functions
@@ -136,6 +138,64 @@ function ensureItemIds(schema: Schema, value: any, path: (string | number)[] = [
         default:
             return value;
     }
+}
+
+/**
+ * Recursively apply clearInvalidData from schemas.
+ * Cleans conditional/invalid data (e.g. clear previous name when has_name_changed is false) before validation.
+ */
+function applyClearInvalidData(value: any, schema: Schema, rootSchema: Schema): any {
+    // Handle array types first (before checking if value is array)
+    if (schema.type === "array" && Array.isArray(value)) {
+        return value.map((item: any) =>
+            applyClearInvalidData(item, schema.itemSchema, rootSchema)
+        );
+    }
+
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return value;
+    }
+
+    let result = { ...value };
+
+    if (schema.type === "union") {
+        const variant =
+            schema.variants.find((v: any) => value[v.discriminator] === v.value) ??
+            schema.variants[0];
+        if (variant) {
+            Object.entries(variant.fields).forEach(([fieldName, fieldSchema]) => {
+                if (result[fieldName] !== undefined) {
+                    result[fieldName] = applyClearInvalidData(
+                        result[fieldName],
+                        fieldSchema,
+                        rootSchema
+                    );
+                }
+            });
+        }
+        if ("clearInvalidData" in schema && typeof schema.clearInvalidData === "function") {
+            result = schema.clearInvalidData(result);
+        }
+        return result;
+    }
+
+    if (schema.type === "object") {
+        Object.entries(schema.fields).forEach(([fieldName, fieldSchema]) => {
+            if (result[fieldName] !== undefined) {
+                result[fieldName] = applyClearInvalidData(
+                    result[fieldName],
+                    fieldSchema,
+                    rootSchema
+                );
+            }
+        });
+        if ("clearInvalidData" in schema && typeof schema.clearInvalidData === "function") {
+            result = schema.clearInvalidData(result);
+        }
+        return result;
+    }
+
+    return result;
 }
 
 /**
@@ -997,11 +1057,14 @@ export function validateObject(
     // Normalise IDs for array items before validation/computation
     const valueWithIds = ensureItemIds(schema, value, []);
 
+    // Clear invalid/conditional data from schemas that define clearInvalidData
+    const valueCleaned = applyClearInvalidData(valueWithIds, schema, schema);
+
     // Step 1-3: Validate all fields recursively, collecting errors
-    const errors = validateValue(valueWithIds, schema, schema, []);
+    const errors = validateValue(valueCleaned, schema, schema, []);
 
     // Step 4: Apply computed values after validation
-    const valueWithComputed = applyComputedValues(valueWithIds, schema, schema);
+    const valueWithComputed = applyComputedValues(valueCleaned, schema, schema);
 
     // Step 5: Return result with validation status and computed data
     return {
