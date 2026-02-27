@@ -982,9 +982,9 @@ const CompanyClientVariant = {
 /** Data cleanup on save: clear invalid/conditional fields based on other values. */
 function clientClearInvalidData(client: any): any {
     if (!client || typeof client !== "object") return client;
-    const out: Client = { ...client };
+    const out = { ...client } as Client;
 
-    if ((client as Client).client_type === "individual") {
+    if (out.client_type === "individual") {
         // If name has not changed, clear all previous name fields
         if (out.has_name_changed === false) {
             out.previous_first_name = undefined;

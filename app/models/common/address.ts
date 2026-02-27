@@ -152,6 +152,34 @@ const AddressBaseSchema = {
     }
 } as const satisfies ObjectSchema;
 
+/** Clear fields for the non-selected address variant (UK vs non-UK). */
+function addressClearInvalidData(address: any): any {
+    if (!address || typeof address !== "object") return address;
+    const out = { ...address };
+
+    if (out.is_uk === true) {
+        out.international_line_1 = undefined;
+        out.international_line_2 = undefined;
+        out.international_line_3 = undefined;
+        out.international_line_4 = undefined;
+        out.country_key = undefined;
+        out.economic_region_key = undefined;
+    } else if (out.is_uk === false) {
+        out.flat_number = undefined;
+        out.house_number = undefined;
+        out.building_name = undefined;
+        out.street = undefined;
+        out.district = undefined;
+        out.town = undefined;
+        out.county = undefined;
+        out.uk_country_key = undefined;
+        out.postcode = undefined;
+        out.uprn = undefined;
+    }
+
+    return out;
+}
+
 export const AddressSchema = {
     type: "union" as const,
     label: "Address",
@@ -159,6 +187,7 @@ export const AddressSchema = {
         const computed = computeAddressValues(address);
         return computed.formatted_address || "";
     },
+    clearInvalidData: addressClearInvalidData,
     variants: [
         {
             ...UkAddressSchema,
