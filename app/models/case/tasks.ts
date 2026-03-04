@@ -761,10 +761,24 @@ const ComplianceReviewTaskVariant = {
     }
 } as const satisfies UnionVariant<"task_type_key", "compliance_review">;
 
+/** Clear task_type_*_details for non-selected task type. */
+function caseTaskClearInvalidData(task: any): any {
+    if (!task || typeof task !== "object") return task;
+    const out = { ...task };
+    const key = out.task_type_key;
+    if (key !== "compliance") out.task_type_compliance_details = undefined;
+    if (key !== "housekeeping") out.task_type_housekeeping_details = undefined;
+    if (key !== "chase") out.task_type_chase_details = undefined;
+    if (key !== "general" && key !== "client_review") out.task_type_adhoc_details = undefined;
+    if (key !== "compliance_review") out.task_type_compliance_review_details = undefined;
+    return out;
+}
+
 // Main TaskDocument union schema
 export const CaseTaskSchema = {
     type: "union" as const,
     label: "Task Document",
+    clearInvalidData: caseTaskClearInvalidData,
     variants: [
         ComplianceTaskVariant,
         HousekeepingTaskVariant,
@@ -800,7 +814,7 @@ export const testComplianceTask: CaseComplianceTask = {
     task_type_compliance_details: {
         required_document: {
             category: "mortgage_advice",
-            sub_category: "mortgage_application_form"
+            sub_type: "mortgage_application_form"
         },
         required_at_stages: ["create_case", "recommend_product", "create_application"],
         task_next_review_date: new Date().toISOString(),

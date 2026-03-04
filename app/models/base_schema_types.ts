@@ -1,6 +1,4 @@
 
-
-
 // Base validation properties shared across all types
 type BaseValidation = {
     /** for an enum will select first item as default */

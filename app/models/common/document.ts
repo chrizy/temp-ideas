@@ -116,7 +116,7 @@ const DocumentSubTypeMortgageAdviceVariant = {
                 mortgage_advice: "Mortgage Advice"
             }
         },
-        sub_category: {
+        sub_type: {
             type: "enum" as const,
             label: "Document Sub Type",
             options: {

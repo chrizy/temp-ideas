@@ -452,10 +452,9 @@ const Required_tasks: Task[] = [
     },
     {
         "document": {
-            category: "client_documentation",
-            sub_type: "fact_find"
+            category: "mortgage_advice",
+            sub_type: "comparison_illustration"
         },
-        "text_field": "Comparison Illustration",
         "creation_event": "create_application",
         "required_at_stages": [
             "application_submission",
@@ -470,7 +469,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "esis"
+            sub_type: "esis"
         },
         "creation_event": "recommend_product",
         "updated_creation_event": "create_application",
@@ -487,7 +486,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "mortgage_application_form"
+            sub_type: "mortgage_application_form"
         },
         "creation_event": "create_application",
         "required_at_stages": [
@@ -503,7 +502,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "mortgage_offer"
+            sub_type: "mortgage_offer"
         },
         "creation_event": "create_application",
         "required_at_stages": [
@@ -518,7 +517,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "mortgage_research"
+            sub_type: "mortgage_research"
         },
         "creation_event": "create_application",
         "required_at_stages": [
@@ -534,7 +533,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "mortgage_suitability_report"
+            sub_type: "mortgage_suitability_report"
         },
         "creation_event": "recommend_product",
         "required_at_stages": [
@@ -551,7 +550,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "mortgage_research"
+            sub_type: "mortgage_research"
         },
         "creation_event": "recommend_product",
         "updated_creation_event": "create_application",
@@ -568,7 +567,7 @@ const Required_tasks: Task[] = [
     {
         "document": {
             category: "mortgage_advice",
-            sub_category: "lender_rate_sheet"
+            sub_type: "lender_rate_sheet"
         },
         "creation_event": "create_application",
         "required_at_stages": [

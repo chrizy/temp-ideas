@@ -1,9 +1,8 @@
 import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../base_schema_types";
 import { AddressSchema } from "../common/address";
 import { EmailSchema, PhoneSchema } from "../common/PhoneEmail";
-import { ImportedDataSchema } from "../common/import";
 import { TrackingSchema } from "../common/tracking";
-import { ClientDependantSchema } from "./dependant";
+import { ClientIncomeSchema } from "./client_income";
 
 // Shared nationality options list (British first)
 const NationalityOptions = {
@@ -74,7 +73,6 @@ const NationalityOptions = {
 const ClientAddressBaseFields = {
     client_address_id: {
         type: "string" as const,
-        label: "Address ID",
         validation: { required: true }
     },
     address: {
@@ -132,9 +130,20 @@ const PastAddressVariant = {
     }
 } as const satisfies UnionVariant<"is_current_address", false>;
 
+/** Clear residency_end_date when address is current (past-only field). */
+function clientAddressClearInvalidData(address: any): any {
+    if (!address || typeof address !== "object") return address;
+    const out = { ...address };
+    if (out.is_current_address === true) {
+        out.residency_end_date = undefined;
+    }
+    return out;
+}
+
 export const ClientAddressSchema = {
     type: "union" as const,
     label: "Client Address",
+    clearInvalidData: clientAddressClearInvalidData,
     variants: [
         CurrentAddressVariant,
         PastAddressVariant
@@ -444,10 +453,23 @@ const CapabilityVulnerabilityVariant = {
     }
 } as const satisfies UnionVariant<"vulnerability_category", "capability">;
 
+/** Clear related_vulnerability_*_key for non-selected category. */
+function vulnerableDetailsClearInvalidData(item: any): any {
+    if (!item || typeof item !== "object") return item;
+    const out = { ...item };
+    const cat = out.vulnerability_category;
+    if (cat !== "health") out.related_vulnerability_health_key = undefined;
+    if (cat !== "life_events") out.related_vulnerability_life_events_key = undefined;
+    if (cat !== "resilience") out.related_vulnerability_resilience_key = undefined;
+    if (cat !== "capability") out.related_vulnerability_capability_key = undefined;
+    return out;
+}
+
 // Vulnerable Details Schema (for array items) - Union type
 const VulnerableDetailsSchema = {
     type: "union" as const,
     label: "Vulnerable Details",
+    clearInvalidData: vulnerableDetailsClearInvalidData,
     variants: [
         HealthVulnerabilityVariant,
         LifeEventsVulnerabilityVariant,
@@ -580,10 +602,24 @@ const CompanyClientRelationshipVariant = {
     }
 } as const satisfies UnionVariant<"relationship_context", "company">;
 
+/** Clear company-only fields when relationship context is individual. */
+function clientRelationshipClearInvalidData(rel: any): any {
+    if (!rel || typeof rel !== "object") return rel;
+    const out = { ...rel };
+    if (out.relationship_context === "individual") {
+        out.business_shareholding_percentage = undefined;
+        out.is_primary_contact = undefined;
+        out.job_title = undefined;
+        out.business_role_note = undefined;
+    }
+    return out;
+}
+
 // Client Relationship Schema (Union)
 const ClientRelationshipSchema = {
     type: "union" as const,
     label: "Client Relationship",
+    clearInvalidData: clientRelationshipClearInvalidData,
     variants: [
         IndividualClientRelationshipVariant,
         CompanyClientRelationshipVariant
@@ -793,7 +829,7 @@ const IndividualClientVariant = {
             label: "National Insurance Number",
             validation: {
                 maxLength: 13, // AB 12 34 56 C (with spaces)
-                pattern: /^[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}$/i
+                pattern: /^[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\d{6}[A-D]$/i
             }
         },
         state_pension_age: {
@@ -864,6 +900,11 @@ const IndividualClientVariant = {
             ...ClientConsentSchema,
             label: "Consumer Consent"
         },
+        client_incomes: {
+            type: "array" as const,
+            itemSchema: ClientIncomeSchema,
+            label: "Client Incomes",
+        },
         addresses: {
             type: "array" as const,
             itemSchema: ClientAddressSchema,
@@ -916,7 +957,7 @@ const CompanyClientVariant = {
             type: "string" as const,
             label: "Companies House Number",
             validation: {
-                pattern: /^[0-9]{8}$/,
+                pattern: /^\d{8}$/,
                 maxLength: 8,
                 minLength: 8
             }
@@ -1059,3 +1100,4 @@ export type CompanyClient = Extract<Client, { client_type: "company" }>;
 export type ClientAddress = SchemaToType<typeof ClientAddressSchema>;
 
 export type { ClientDependant } from "./dependant";
+export type { ClientIncome } from "./client_income";
