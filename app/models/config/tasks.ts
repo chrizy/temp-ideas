@@ -1,4 +1,4 @@
-import type { DocumentTypes, DocumentSubType } from "../common/document";
+import type { DocumentTypes, DocumentSubType } from "../documents/document_types";
 import type { EnumSchema, SchemaToType } from "../base_schema_types";
 
 // Single source of truth for stage enum

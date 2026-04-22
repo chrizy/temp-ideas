@@ -1,7 +1,7 @@
 import type { ObjectSchema, SchemaToType, EnumSchema, ArraySchema } from "../base_schema_types";
 import { AddressSchema } from "../common/address";
 import { TrackingSchema } from "../common/tracking";
-import { DocumentSubTypeSchema } from "../common/document";
+import { DocumentSubTypeSchema } from "../documents/document_types";
 import { checkSectionCompletion } from "../../utils/isComplete";
 
 // Enums

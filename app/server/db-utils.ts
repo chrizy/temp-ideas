@@ -12,7 +12,7 @@ function nowDatetime(): string {
 /**
  * Valid table names — use this union for static checking. Do not interpolate arbitrary strings into SQL.
  */
-export type TableName = "clients" | "client_dependants" | "users" | "groups" | "accounts";
+export type TableName = "clients" | "client_dependants" | "users" | "groups" | "accounts" | "documents";
 
 /** Keys set by the DB or by processCreate; omit these when passing data to create a new record. */
 export const CREATED_BY_SYSTEM_KEYS = [

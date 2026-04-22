@@ -1,6 +1,6 @@
 import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "~/models/base_schema_types";
 import { TrackingSchema } from "~/models/common/tracking";
-import { DocumentSubTypeSchema } from "~/models/common/document";
+import { DocumentSubTypeSchema } from "~/models/documents/document_types";
 import { StageEnumSchema } from "~/models/config/tasks";
 
 // Helper schemas
