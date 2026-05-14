@@ -5,13 +5,15 @@ export default defineWorkersConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
-    include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    include: ["**/*.live.test.ts"],
     exclude: ["node_modules", "dist", ".idea", ".git", ".cache"],
     poolOptions: {
       workers: {
-        remoteBindings: false,
+        // Live AI tests require Wrangler remote proxy session.
+        remoteBindings: true,
         wrangler: { configPath: "./wrangler.jsonc" },
       },
     },
   },
 });
+

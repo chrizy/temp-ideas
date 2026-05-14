@@ -56,6 +56,19 @@
 		"binding": "AI"
 	},
 	/**
+	 * R2 Bucket: PDF/image fixtures for live AI tests
+	 * Create once with:
+	 *   pnpm wrangler r2 bucket create typeed-forms-test-fixtures
+	 * Then upload fixtures under e.g. `documents/...`
+	 */
+	"r2_buckets": [
+		{
+			"binding": "TEST_FIXTURES",
+			"bucket_name": "typeed-forms-test-fixtures",
+			"remote": true
+		}
+	],
+	/**
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */

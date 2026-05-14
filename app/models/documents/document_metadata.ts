@@ -139,6 +139,8 @@ export type ClientDocumentMetadataMap = {
         term_months?: number;
     };
     bank_statements: {
+        /** Canonical account reference, e.g. "07-08-06/1242" */
+        account_reference?: string;
         account_holder_name?: string;
         address?: string;
         bank_name?: string;

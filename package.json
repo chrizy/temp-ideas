@@ -12,6 +12,8 @@
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:run": "vitest run",
+		"test:ai": "vitest run -c vitest.ai.config.ts",
+		"ai:fixtures:upload": "pnpm -s tsx scripts/upload-ai-fixtures.ts",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
 	},
 	"dependencies": {
@@ -30,6 +32,7 @@
 		"@types/react-dom": "^19.1.9",
 		"@vitest/ui": "^3.2.4",
 		"tailwindcss": "^4.1.13",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.2",
 		"vite": "^7.1.7",
 		"vite-tsconfig-paths": "^5.1.4",
