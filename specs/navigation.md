@@ -14,7 +14,7 @@ Breadcrumbs sit **below the global header** on list and dashboard pages, and **b
 | **Labels** | Use **human-readable** labels (client display name, case reference, tab titles). URLs remain kebab-case; crumbs are for people. |
 | **Interaction** | Every crumb except the **current page** is a link to that ancestor route. The current page is plain text (or visually de-emphasised link disabled). |
 | **Deep links** | When the user lands on a deep URL (e.g. mortgage **Documents**), the trail still shows parents (**Case** → **Requirements** → **Mortgage** → **Documents**) so orientation is preserved. |
-| **Client-only routes** | Under `/client/{client_id}/…`, include **Clients** (list) then the client name, then the sub-page. |
+| **Client-only routes** | Under `/clients/{client_id}/…`, include **Clients** (list) then the client name, then the sub-page. |
 
 ### Breadcrumbs on narrow viewports (mobile)
 
@@ -80,7 +80,7 @@ Parent **Commissions** is a group header only, no separate `/commissions` index 
 
 | URL | Page covers |
 |-----|-------------|
-| `/client/{client_id}/overview` | **Client overview**: summary profile; **cases**, **opportunities**, and **referrals** linked to this client; navigation into case/client KYC where relevant. |
+| `/clients/{client_id}/overview` | **Client overview**: summary profile; **cases**, **opportunities**, and **referrals** linked to this client; navigation into case/client KYC where relevant. |
 
 Optional list route is already covered by `/clients` (client list).
 
