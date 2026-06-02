@@ -13,7 +13,7 @@ export type UserSession = {
     group_linkage: string;
     /** Tenant/Account ID - identifies which account owns this record */
     account_id: number;
-    /** Database shard ID - identifies which database shard to use */
+    /** Account stack binding ID — routes to this account's dedicated Worker + Account D1 */
     db_shard_id: string;
 
 };

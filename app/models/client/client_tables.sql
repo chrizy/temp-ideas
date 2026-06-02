@@ -1,8 +1,8 @@
--- Clients (document-style storage)
+-- Clients (Account D1 — one database per account; document-style storage)
 -- Rules:
 -- - Store full record JSON in `body`
 -- - Keep only query/sort/index fields as generated columns
--- - Keep tenant isolation via `account_id`
+-- - `account_id` column: audit / schema consistency (isolation is the Account D1 boundary)
 -- - Tracking fields (e.g. `updated_at`, `version`) live inside the JSON `body`
 CREATE TABLE clients (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +46,8 @@ CREATE INDEX idx_client_dependants_account_deleted ON client_dependants(account_
 CREATE INDEX idx_client_dependants_account_name ON client_dependants(account_id, last_name, first_name);
 
 -- Join table: dependant ↔ client (many-to-many)
-CREATE TABLE client_dependant_clients (
+-- Naming: prefer client_dependant_links (_links suffix for all M:N join tables)
+CREATE TABLE client_dependant_links  (
   account_id INTEGER NOT NULL,
   dependant_id INTEGER NOT NULL,
   client_id INTEGER NOT NULL,
@@ -59,3 +60,32 @@ CREATE TABLE client_dependant_clients (
 CREATE INDEX idx_dependant_clients_account_client ON client_dependant_clients(account_id, client_id);
 CREATE INDEX idx_dependant_clients_account_dependant ON client_dependant_clients(account_id, dependant_id);
 
+
+-- Client credit histories (document-style storage)
+-- Adverse credit entries (arrears, CCJ, IVA, bankruptcy, etc.) linked to one or more clients.
+CREATE TABLE client_credit_histories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  account_id INTEGER NOT NULL,
+
+  body TEXT NOT NULL,
+
+  -- Commonly queried fields (generated from JSON)
+  is_deleted INTEGER GENERATED ALWAYS AS (json_extract(body, '$.is_deleted')) STORED
+);
+
+CREATE INDEX idx_client_credit_histories_account ON client_credit_histories(account_id);
+CREATE INDEX idx_client_credit_histories_account_deleted ON client_credit_histories(account_id, is_deleted);
+
+-- Join table: credit history ↔ client (many-to-many)
+CREATE TABLE client_credit_history_links (
+  account_id INTEGER NOT NULL,
+  credit_history_id INTEGER NOT NULL,
+  client_id INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (account_id, credit_history_id, client_id),
+  FOREIGN KEY (credit_history_id) REFERENCES client_credit_histories(id),
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+);
+
+CREATE INDEX idx_credit_history_links_account_client ON client_credit_history_links(account_id, client_id);
+CREATE INDEX idx_credit_history_links_account_credit_history ON client_credit_history_links(account_id, credit_history_id);

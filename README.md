@@ -1,36 +1,63 @@
 # Architecture Summary
 
-Multi-tenant SaaS on Cloudflare: **multiple tenants (accounts) are batched into a single deployed instance** (one Worker + one D1 database per shard). The **account DB is a separate D1 used by all tenants**; it holds the account table (including `db_shard_id`) and routes each account to the correct data shard. Each shard stores groups, users, clients, and other shared data for all tenants on that shard. Larger customers can be given a **dedicated Worker + dedicated D1** (their own shard) for isolation and scale.
+Multi-tenant SaaS on Cloudflare with **two database tiers**:
+
+1. **Shared platform** — single Worker + single D1 used by all tenants. Holds global registry data only.
+2. **Per-account (customer) stack** — when an account is created, the platform **deploys a dedicated D1 database and a dedicated Worker** bound to that D1. All firm-specific data (admin, clients, cases, documents, contacts) lives only in that account’s D1.
+
+This gives **maximum isolation**: no other tenant shares the same database or compute binding.
 
 ## Key requirements
 
-- **Up to 4000 concurrent UK-only users per tenant**
-- **~5 GB per tenant over 10 years** (document-centric client management)
-- **Low cost** — shared instances for small/medium tenants; dedicated only where needed
-- **High isolation** — per-tenant data keyed by `account_id`; large customers get dedicated Worker + D1
+- **Up to 4000 concurrent UK-only users per account**
+- **~5 GB per account over 10 years** (document-centric client management)
+- **Strong isolation** — one D1 + one Worker per account; no cross-tenant rows in customer data
 - **UK data residency** — compute in UK PoPs; D1 replication limited to EU region group; GDPR compliant; data does not leave Europe
 
-## Tenancy and Sharding
+## Shared platform (all tenants)
 
-- **Account DB (single D1, all tenants)**: Holds the account table (`id`, `name`, `db_shard_id`, `is_active`, etc.). Used by every tenant to resolve which data shard to use. No tenant data (groups, users, clients) lives here.
-- **Data shards**: Many tenants (`account_id`) share one Worker and one D1 per shard. Tables are multi-tenant (e.g. `account_id` in every table; see composite keys in the DB rules).
-- **Shared shard contents**: On a given shard, groups, users, clients, and related data live together; rows are distinguished by `account_id`.
-- **Dedicated instances**: Larger or high-touch customers get their own Worker + D1 (and thus their own `db_shard_id`), with no sharing.
+Single deployment, shared by every account:
 
-This supports:
+| What | Where |
+|------|--------|
+| Account registry | Shared D1 → `accounts` |
+| Marketplace providers | Shared D1 → `providers` |
 
-- Cost-effective density for small/medium tenants
-- Strong isolation and dedicated resources for large accounts
-- Document-style JSON storage with indexed fields (see rules below)
-- UK data residency and GDPR (see Key requirements above)
+The shared Worker handles account provisioning, provider lookups, and **routing** authenticated requests to the correct account Worker (using binding metadata stored on the account row).
+
+**No client, user, group, case, or document data** lives in the shared D1.
+
+## Per-account stack (one per customer)
+
+**On account creation:**
+
+1. Insert row in shared `accounts` (name, status, routing metadata).
+2. Provision **dedicated D1** for that account.
+3. Deploy **dedicated Worker** with a binding to that D1 only.
+4. Run migrations / seed schema on the new D1.
+5. Store Worker URL and D1 binding id on the account record (today: `db_shard_id` on `AccountSchema` — identifier for that account’s stack).
+
+Each account Worker serves only that account’s users. Its D1 holds:
+
+| Domain | Tables (representative) |
+|--------|-------------------------|
+| Admin | `users`, `groups` |
+| Client | `clients`, `client_dependants`, `client_dependant_clients` |
+| Case | `cases`, case tasks *(planned)* |
+| Documents | `documents` (metadata; file bytes in R2) |
+| Contacts | contact companies / individuals *(planned)* |
+
+Rows may still include `account_id` in JSON for audit and schema consistency (`TrackingSchema`), but **tenant isolation is enforced by the database boundary**, not by filtering a shared table.
 
 ## Storage and Schema (D1)
 
-Primary store is **D1 (SQLite)**. Schema pattern: JSON document in `body`, with generated columns and indexes only for fields you query/filter/sort. Multitenancy uses composite keys (e.g. `account_id` + entity id).
+Primary store is **D1 (SQLite)**. Schema pattern: JSON document in `body`, with generated columns and indexes only for fields you query/filter/sort.
 
 **Do not duplicate the full schema rules here.** See:
 
-- **`.cursor/rules/d1-sql-json-body.mdc`** — JSON body, generated columns, indexes, and multitenancy (e.g. `UNIQUE (account_id, <entity_id>)`). All D1 table design should follow that rule.
+- **`.cursor/rules/d1-sql-json-body.mdc`** — JSON body, generated columns, indexes. Distinguishes **shared** vs **account** D1 usage.
+- **`docs/skills/db-setup/db-tables.md`** — model file → table mapping by domain.
+- **`docs/skills/db-setup/db-diagrams.md`** — ASCII trees (Shared vs Account D1, client tables).
 
 ## Caching (Optional)
 
@@ -43,34 +70,41 @@ Strong consistency can be achieved using D1 session bookmarks: writes return a b
 ## High-Level Picture
 
 ```
-                    UK Users (up to 4000 concurrent per tenant)
+                    UK Users
                         │
               Tenant / Custom Domain
                         │
               ┌─────────────────────┐
-              │  Worker (shared or  │
-              │  dedicated per tier) │
-              └─────────────────────┘
-                        │
-         ┌──────────────┼──────────────┬──────────────┐
-         │              │              │              │
-   Account D1      Shard A         Shard B      Shard C (e.g. large customer)
-   (D1, all        (D1)            (D1)         (D1)
-    tenants)       account_id      account_id   single account_id
-   account table   ├ groups        ├ groups     ├ groups
-   db_shard_id →   ├ users         ├ users      ├ users
-                   ├ clients       ├ clients    ├ clients
-                   └ ...           └ ...        └ ...
+              │  Shared platform     │
+              │  Worker + Shared D1    │
+              │  • accounts            │
+              │  • providers           │
+              │  • provision + route   │
+              └──────────┬────────────┘
+                         │ route by account
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+  │ Account A    │ │ Account B    │ │ Account C    │
+  │ Worker + D1  │ │ Worker + D1  │ │ Worker + D1  │
+  ├─────────────┤ ├─────────────┤ ├─────────────┤
+  │ users        │ │ users        │ │ users        │
+  │ groups       │ │ groups       │ │ groups       │
+  │ clients      │ │ clients      │ │ clients      │
+  │ cases        │ │ cases        │ │ cases        │
+  │ documents    │ │ documents    │ │ documents    │
+  │ contacts…    │ │ contacts…    │ │ contacts…    │
+  └─────────────┘ └─────────────┘ └─────────────┘
+         │               │               │
+         └───────────────┴───────────────┘
+                    R2 (per-account buckets or prefixes)
 ```
-
-**Account D1** (single DB, all tenants): `account` table with `id`, `name`, `db_shard_id`, `is_active`, etc. — routes each account to the correct data shard. **Data shards** hold groups, users, clients keyed by `account_id`.
 
 ## Summary
 
-- **No Durable Objects**; optional KV for safe read caching.
-- **Account DB**: separate D1 used by all tenants; account table holds `db_shard_id`. **Multi-tenant data**: many `account_id`s per Worker + data shard D1.
-- **Shared shard**: groups, users, clients (and related data) in one D1, keyed by `account_id`.
-- **Dedicated path**: larger customers get their own Worker + D1.
-- **D1 schema**: follow `.cursor/rules/d1-sql-json-body.mdc` (JSON body, generated columns, indexes, composite keys).
+- **Shared D1**: `accounts`, `providers` — platform-wide, all tenants.
+- **Account D1**: admin, client, case, documents, contacts — **one D1 per account**, no sharing.
+- **Account creation** provisions dedicated D1 + Worker and records routing metadata on the account row.
+- **D1 schema**: follow `.cursor/rules/d1-sql-json-body.mdc` (JSON body, generated columns, indexes).
 
-Optimized for document-centric, compliance-aware SaaS with flexible tenant density and scale.
+Optimized for document-centric, compliance-aware SaaS with per-customer isolation.

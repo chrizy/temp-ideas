@@ -17,7 +17,7 @@ export const BusinessTypeSchema = {
     }
 } as const satisfies ObjectSchema;
 
-// Main Provider schema
+/** Marketplace provider — stored in **Shared D1** (`providers`), not per-account D1. */
 export const ProviderSchema = {
     type: "object" as const,
     fields: {

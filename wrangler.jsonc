@@ -14,15 +14,13 @@
 		"enabled": true
 	},
 	/**
-	 * D1 Database Bindings
-	 * Accounts DB: Holds accounts, groups, users for all tenants
-	 * CUST_DB1: First customer DB shard for clients and cases
-	 * 
-	 * To create the databases, run:
+	 * D1 Database Bindings (local dev / platform worker)
+	 * ACCOUNTS_DB (Shared D1): accounts + providers — all tenants
+	 * CUST_DB1 (Account D1): example per-account DB — users, groups, clients, cases, documents
+	 *   Production: one D1 + one Worker per account, provisioned on account create.
+	 *
 	 *   npx wrangler@latest d1 create accounts-db
 	 *   npx wrangler@latest d1 create cust-db1
-	 * 
-	 * Then update the database_id values below with the IDs returned from the create commands.
 	 */
 	"d1_databases": [
 		{

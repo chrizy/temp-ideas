@@ -1932,7 +1932,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/cases/{caseId}/requirements/{requirementId}/general_insurance/bc-quotes": {
@@ -3256,6 +3257,94 @@
         }
       }
     },
+    "/api/v1/caseapplications/complete/{applicationId}": {
+      "post": {
+        "tags": [
+          "CaseApplications"
+        ],
+        "summary": "Marks an application as completed",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseApplication"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "parameter is null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/caseapplications/reopen/{applicationId}": {
+      "post": {
+        "tags": [
+          "CaseApplications"
+        ],
+        "summary": "Reopens an application that was perviously marked as completed",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseApplication"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "parameter is null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/caseapplications/{caseId}/application/{applicationId}/replacements": {
       "get": {
         "tags": [
@@ -4064,6 +4153,82 @@
         }
       }
     },
+    "/api/v1/cases/{caseId}/requirements/{requirementId}/duplicate": {
+      "post": {
+        "tags": [
+          "CaseRequirements"
+        ],
+        "summary": "Duplicate case requirement",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "description": "case id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requirementId",
+            "in": "path",
+            "description": "requirement id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "duplicate filter",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementDuplicateOptions"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementDuplicateOptions"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementDuplicateOptions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CaseRequirement"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "parameter is null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/cases": {
       "post": {
         "tags": [
@@ -4594,6 +4759,50 @@
         }
       }
     },
+    "/api/v1/cases/getforcompanyid/{clientCompanyId}": {
+      "get": {
+        "tags": [
+          "Cases"
+        ],
+        "summary": "Returns a list of cases linked to the specified company id",
+        "parameters": [
+          {
+            "name": "clientCompanyId",
+            "in": "path",
+            "description": "Company ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a list of cases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CaseListItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "clientCompanyId null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cases/getforclientids": {
       "post": {
         "tags": [
@@ -4760,6 +4969,68 @@
             }
           },
           {
+            "name": "Events",
+            "in": "query",
+            "description": "Events",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EventDatabaseOperation"
+              }
+            }
+          },
+          {
+            "name": "Areas",
+            "in": "query",
+            "description": "Areas",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "Users",
+            "in": "query",
+            "description": "Users",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "CreatedByUserType",
+            "in": "query",
+            "description": "Users",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/UserType"
+              }
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "description": "From",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "description": "To",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
             "name": "CaseId",
             "in": "query",
             "description": "Case Id",
@@ -4835,6 +5106,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/audit/export": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "summary": "Export case audit details",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAuditPageRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAuditPageRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAuditPageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns a page of case data history",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
                 }
               }
             }
@@ -5709,6 +6044,109 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ClientCreditHistory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ids null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clientportal/clients/{caseId}/creditcommitment": {
+      "get": {
+        "tags": [
+          "Client Portal Only APIs"
+        ],
+        "summary": "Returns a list of client credit commitment items linked to the client",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "description": "String of case id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the requested client credit commitment items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientPortalCreditCommitment"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ids null or default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Client Portal Only APIs"
+        ],
+        "summary": "Create/Updates client credit commitment item linked to the client",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "description": "String of Case Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Dto of credit history",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientPortalCreditCommitment"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientPortalCreditCommitment"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientPortalCreditCommitment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns the requested client credit history items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientCommitment"
                 }
               }
             }
@@ -9086,6 +9524,48 @@
           "200": {
             "description": "OK"
           }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/events/document_updated": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Handles events related to document updates which are raised from DSS",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateEvent"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateEvent"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateEvent"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
         }
       }
     },
@@ -10467,7 +10947,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { }
+                  "items": {}
                 }
               }
             }
@@ -11413,6 +11893,19 @@
           }
         }
       }
+    },
+    "/api/v1/utilities/clientaccessedgebackfill": {
+      "post": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Run a backfill to generate all client access edges for use in the client list pipeline.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11479,6 +11972,13 @@
             "format": "date-time",
             "nullable": true
           },
+          "estimated_on_risk_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated on risk date<br>q-db99d102-5c94-4864-bfbd-219d854255cc",
+            "format": "date-time",
+            "nullable": true
+          },
           "is_application_reporting_acceptance_terms_clients_accepted": {
             "maxLength": 100,
             "type": "boolean",
@@ -11537,7 +12037,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -11636,12 +12135,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -11736,18 +12233,18 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
           "email_address": {
+            "maxLength": 100,
+            "minLength": 5,
             "type": "string",
-            "description": "Email address",
+            "description": "Email address<br>q-8609bfb0-104c-46f1-ad47-2f8b9d9f6e06",
             "nullable": true
           }
         },
@@ -11759,28 +12256,30 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
           "phone_type_key": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Phone type",
+            "description": "Phone type<br>Possible values: mobile, landline<br>q-02947b56-76b0-476d-be75-21629cd5cdb4",
             "nullable": true
           },
           "phone_number": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string",
-            "description": "Phone number",
+            "description": "Phone number<br>q-cc4425a7-e279-4085-9fd2-0389ff9bc2b3",
             "nullable": true
           },
           "phone_country_code_key": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Phone country code",
+            "description": "Country code<br>q-52b8602e-7a58-43a8-a8ff-b2798d5c7ac2",
             "nullable": true
           },
           "phone_number_e164": {
@@ -11880,12 +12379,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -11983,8 +12480,9 @@
             "nullable": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "MortgageProviderId",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "kyc_have_properties_been_found": {
@@ -12192,8 +12690,9 @@
             "nullable": true
           },
           "calculated_formatted_address": {
+            "maxLength": 100,
             "type": "string",
-            "description": "computed property - formatted address",
+            "description": "Address<br>q-c081d7e6-d434-46b2-997c-da351d85d179",
             "nullable": true
           },
           "calculated_is_valid": {
@@ -12347,12 +12846,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -12470,8 +12967,9 @@
         "type": "object",
         "properties": {
           "has_post_application_amendment": {
+            "maxLength": 100,
             "type": "boolean",
-            "description": "Has post-application amendment"
+            "description": "Has post application amendment(s)<br>q-6beb9efd-7ee2-4fd9-9baf-692c93fad885"
           }
         },
         "additionalProperties": false,
@@ -12525,7 +13023,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "client_id": {
@@ -12639,8 +13136,9 @@
             "nullable": true
           },
           "policy_provider_general_insurance_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderInsuranceId",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "policy_account_number_ref": {
@@ -12968,7 +13466,7 @@
           "mortgage_bridging_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, interest_serviced, part_and_part<br>q-b34eedb0-cce1-4537-883b-606ce3a7138a",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, interest_serviced, part_and_part<br>q-b34eedb0-cce1-4537-883b-606ce3a7138a",
             "nullable": true
           },
           "mortgage_part_monthly_payment_amount": {
@@ -13103,53 +13601,53 @@
           "case_requirement_property_ownership_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
+            "description": "Property Ownership completion date<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_property_ownership_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351",
+            "description": "Property Ownership completion status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351",
             "readOnly": true
           },
           "case_requirement_security_property_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
+            "description": "Security Property completion date<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_security_property_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a",
+            "description": "Security Property completion status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a",
             "readOnly": true
           },
           "case_requirement_loan_prefs_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
+            "description": "Loan & Product Prefs completion date<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_loan_prefs_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8",
+            "description": "Loan & Product Prefs completion status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8",
             "readOnly": true
           },
           "case_requirement_additional_questions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-132cad3b-a338-435a-ae49-33da59e3afab",
+            "description": "Additional Questions completion date<br>q-132cad3b-a338-435a-ae49-33da59e3afab",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_additional_questions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>q-849d78bd-52da-466d-a371-f77fd5d2220c",
+            "description": "Additional Questions completion status<br>Possible values: true, false<br>q-849d78bd-52da-466d-a371-f77fd5d2220c",
             "readOnly": true
           }
         },
@@ -13287,8 +13785,9 @@
         "type": "object",
         "properties": {
           "mortgage_preference_total_amount": {
+            "maxLength": 100,
             "type": "number",
-            "description": "Gets or sets the total mortgage preference amount<br>q-20eda8ed-b7e9-4784-b0cf-6242c63736983",
+            "description": "Total mortgage required<br>q-20eda8ed-b7e9-4784-b0cf-6242c6373698",
             "format": "double",
             "nullable": true
           },
@@ -13453,12 +13952,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -13636,12 +14133,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -13686,7 +14181,7 @@
           "mortgage_bridging_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, interest_serviced, part_and_part<br>q-b34eedb0-cce1-4537-883b-606ce3a7138a",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, interest_serviced, part_and_part<br>q-b34eedb0-cce1-4537-883b-606ce3a7138a",
             "nullable": true
           },
           "mortgage_part_monthly_payment_amount": {
@@ -13735,12 +14230,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -13930,12 +14423,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -13993,12 +14484,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -14070,7 +14559,7 @@
           "policy_household_sum_assured_amount": {
             "maxLength": 100,
             "type": "number",
-            "description": "🔥 Contents cover (v1)<br>q-264bae58-0b83-4231-9162-9e6948d0f21c",
+            "description": "Cover amount<br>q-17790bdd-66c2-4937-b15d-cdd939460d36",
             "format": "double",
             "nullable": true
           },
@@ -14133,12 +14622,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -14260,7 +14747,12 @@
             "nullable": true
           },
           "case_product_general_insurance": {
-            "$ref": "#/components/schemas/CaseRequirementProductGeneralInsurance"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseRequirementProductGeneralInsurance"
+            },
+            "description": "Gets or sets the case requirement product general insurance object",
+            "nullable": true
           },
           "document_ids": {
             "type": "array",
@@ -14273,6 +14765,31 @@
         },
         "additionalProperties": false,
         "description": "A quote result"
+      },
+      "BuildingsAndContentsAdditionalInfo": {
+        "type": "object",
+        "properties": {
+          "has_opportunity_existing_buildings_and_contents_cover": {
+            "maxLength": 100,
+            "type": "boolean",
+            "description": "Is there existing B&C cover?<br>q-37dc7180-080f-437c-a14e-91ca5b768a07",
+            "nullable": true
+          },
+          "policy_household_benefits_covered_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Cover type<br>Possible values: buildings, contents, buildings_contents<br>q-ad72d2cd-9e2f-4d0b-8851-89c84ed91583",
+            "nullable": true
+          },
+          "policy_provider_general_insurance_id": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Provider<br>q-6f6ab581-f2ff-4282-8379-4d11dd7c5e64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Buildings and contents additional info"
       },
       "BuildingsAndContentsPolicy": {
         "type": "object",
@@ -14290,8 +14807,9 @@
             "nullable": true
           },
           "policy_provider_general_insurance_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderInsuranceId",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "policy_provider_paymentshield_underwriter_name_key": {
@@ -14813,7 +15331,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_preference_income_benefit_deferred_key": {
@@ -14907,12 +15424,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -14935,6 +15450,12 @@
             "maxLength": 100,
             "type": "string",
             "description": "Cover purpose<br>Possible values: relevant_life, business_loan_protection, shareholder_protection, cashflow_profits_protection, key_person_income_protection, executive_income_protection<br>q-add5f994-4c6c-4bdd-a71c-1039a22fd12e",
+            "nullable": true
+          },
+          "business_protection_income_cover_purpose_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Cover purpose<br>Possible values: key_person_income_protection, executive_income_protection<br>q-4ed7cd35-627c-4f8f-bd1e-1f55b7e485a2",
             "nullable": true
           },
           "protection_preference_indexation_options_income_protection_key": {
@@ -15130,12 +15651,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -15158,6 +15677,12 @@
             "maxLength": 100,
             "type": "string",
             "description": "Cover purpose<br>Possible values: relevant_life, business_loan_protection, shareholder_protection, cashflow_profits_protection, key_person_income_protection, executive_income_protection<br>q-add5f994-4c6c-4bdd-a71c-1039a22fd12e",
+            "nullable": true
+          },
+          "protection_cover_type_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Cover type<br>Possible values: life, critical_illness, life_or_earlier_critical_illness, dual_life_critical_illness<br>q-a013b293-afbb-4bf2-b7ea-9c7ae3d4d59c",
             "nullable": true
           },
           "protection_preference_cover_basis_key": {
@@ -15309,48 +15834,48 @@
           "case_requirement_existing_provisions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
+            "description": "Existing Provisions completion status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
           },
           "case_requirement_existing_provisions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
+            "description": "Existing Provisions completion date<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_health_lifestyle_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
+            "description": "Health & Lifestyle completion status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
           },
           "case_requirement_health_lifestyle_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
+            "description": "Health & Lifestyle completion date<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_analysis_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc"
+            "description": "Needs Analysis completion status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc"
           },
           "case_requirement_needs_analysis_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
+            "description": "Needs Analysis completion date<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_preferences_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
+            "description": "Needs Preferences completion status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
           },
           "case_requirement_needs_preferences_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
+            "description": "Needs Preferences completion date<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
             "format": "date-time",
             "nullable": true
           }
@@ -15363,12 +15888,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -15385,6 +15908,12 @@
             "maxLength": 100,
             "type": "string",
             "description": "Protection Type<br>Possible values: term, income_protection<br>q-fbe28fbf-af6c-47d3-bc95-a401c002b8f5",
+            "nullable": true
+          },
+          "business_protection_term_cover_purpose_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Cover purpose<br>Possible values: relevant_life, business_loan_protection, shareholder_protection, cashflow_profits_protection<br>q-f891c45f-dd37-47ba-9bc0-ec177c82b457",
             "nullable": true
           },
           "business_protection_cover_purpose_key": {
@@ -15515,7 +16044,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -15790,6 +16318,9 @@
           "requirement_needs": {
             "$ref": "#/components/schemas/RequirementNeeds"
           },
+          "correspondence_data": {
+            "$ref": "#/components/schemas/CorrespondenceData"
+          },
           "links": {
             "type": "array",
             "items": {
@@ -15899,7 +16430,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -16124,6 +16654,9 @@
           },
           "reporting": {
             "$ref": "#/components/schemas/ApplicationReporting"
+          },
+          "correspondence_data": {
+            "$ref": "#/components/schemas/CorrespondenceData"
           }
         },
         "additionalProperties": false,
@@ -16431,6 +16964,93 @@
         "additionalProperties": false,
         "description": "Case application result"
       },
+      "CaseAuditPageRequest": {
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "description": "The requested page number.",
+            "format": "int32",
+            "nullable": true
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "The requested number of list items per page.",
+            "format": "int32",
+            "nullable": true
+          },
+          "filterText": {
+            "type": "string",
+            "description": "Optional - filter text to be applied.",
+            "nullable": true
+          },
+          "sortColumn": {
+            "type": "string",
+            "description": "Optional - the sort column name.",
+            "nullable": true
+          },
+          "sortDescending": {
+            "type": "boolean",
+            "description": "Sort in descending order?"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventDatabaseOperation"
+            },
+            "description": "Events",
+            "nullable": true
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Areas",
+            "nullable": true
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Users",
+            "nullable": true
+          },
+          "createdByUserType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserType"
+            },
+            "description": "Users",
+            "nullable": true
+          },
+          "from": {
+            "type": "string",
+            "description": "From",
+            "format": "date-time",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "description": "To",
+            "format": "date-time",
+            "nullable": true
+          },
+          "caseId": {
+            "type": "string",
+            "description": "Case Id",
+            "nullable": true
+          },
+          "clientId": {
+            "type": "string",
+            "description": "Client Id",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Extended page request DTO for case audit"
+      },
       "CaseChecksRecordValidation": {
         "type": "object",
         "properties": {
@@ -16555,7 +17175,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -17263,7 +17882,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -17471,9 +18089,17 @@
           "pap_details": {
             "$ref": "#/components/schemas/CaseOverviewCaseApplicationPAPDetails"
           },
+          "business_protection_details": {
+            "$ref": "#/components/schemas/CaseOverviewCaseApplicationBusinessProtectionDetails"
+          },
           "application_id": {
             "type": "string",
             "description": "Case application id",
+            "nullable": true
+          },
+          "application_type_key": {
+            "type": "string",
+            "description": "Case application type",
             "nullable": true
           },
           "requirement_id": {
@@ -17530,6 +18156,21 @@
         },
         "additionalProperties": false,
         "description": "Requirement bc-product-specific details"
+      },
+      "CaseOverviewCaseApplicationBusinessProtectionDetails": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseOverviewProduct"
+            },
+            "description": "Products",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "business protection-specific fields"
       },
       "CaseOverviewCaseApplicationGIDetails": {
         "type": "object",
@@ -17739,6 +18380,15 @@
           "general_insurance_details": {
             "$ref": "#/components/schemas/CaseOverviewCaseRequirementGIDetails"
           },
+          "equity_release_details": {
+            "$ref": "#/components/schemas/RequirementOverview"
+          },
+          "bridging_details": {
+            "$ref": "#/components/schemas/RequirementOverview"
+          },
+          "business_protection_details": {
+            "$ref": "#/components/schemas/CaseOverviewCaseRequirementBusinessProtectionDetails"
+          },
           "ref_no": {
             "type": "string",
             "description": "Reference number",
@@ -17770,6 +18420,21 @@
         },
         "additionalProperties": false,
         "description": "case requirement case requirements section details"
+      },
+      "CaseOverviewCaseRequirementBusinessProtectionDetails": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseOverviewProduct"
+            },
+            "description": "Products",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Requirement business protection-specific details"
       },
       "CaseOverviewCaseRequirementGIDetails": {
         "type": "object",
@@ -18078,6 +18743,14 @@
           },
           "asu": {
             "$ref": "#/components/schemas/CaseOverviewProtectionAsu"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseOverviewSectionBase"
+            },
+            "description": "The status of the stages of the application with respect to the Protection Benefit",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -18224,7 +18897,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -18295,24 +18967,6 @@
             "type": "string",
             "nullable": true
           },
-          "policy_provider_protection_id": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
-            "nullable": true
-          },
-          "policy_provider_protection_name_key": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Provider<br>q-fc6023b7-92f7-40d7-a25f-ad340febb94f",
-            "nullable": true
-          },
-          "policy_provider_other_name": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Provider<br>q-5d4afffb-545b-48bb-abc2-6b84ef5c651e",
-            "nullable": true
-          },
           "policy_account_premium_total_amount": {
             "maxLength": 100,
             "type": "number",
@@ -18355,6 +19009,23 @@
             "type": "string",
             "description": "Date of recommendation<br>q-9ed99bfd-e760-41dd-9c95-d2c0aebb5721",
             "format": "date-time",
+            "nullable": true
+          },
+          "policy_provider_protection_id": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
+            "nullable": true
+          },
+          "policy_provider_protection_name_key": {
+            "type": "string",
+            "description": "Gets or sets the policy provider protection name key.",
+            "nullable": true
+          },
+          "policy_provider_other_name": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Provider<br>q-5d4afffb-545b-48bb-abc2-6b84ef5c651e",
             "nullable": true
           },
           "application_reporting_protection_submission_date": {
@@ -18413,12 +19084,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -18495,7 +19164,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -18658,7 +19326,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -18873,6 +19540,22 @@
           },
           "reporting": {
             "$ref": "#/components/schemas/RequirementReporting"
+          },
+          "duplicated_to_requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Linked duplicated to requirement IDs.",
+            "nullable": true
+          },
+          "requirement_duplicated_from_id": {
+            "type": "string",
+            "description": "Linked requirement duplicated from ID.",
+            "nullable": true
+          },
+          "correspondence_data": {
+            "$ref": "#/components/schemas/CorrespondenceData"
           }
         },
         "additionalProperties": false,
@@ -18976,7 +19659,7 @@
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           }
         },
@@ -18988,12 +19671,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -19020,8 +19701,9 @@
             "nullable": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Mortgage provider Id",
+            "description": "Lender<br>q-e8cb20a1-b796-42fb-acec-f278b15009ac",
             "nullable": true
           },
           "mortgage_provider_other_name": {
@@ -19075,6 +19757,18 @@
             "format": "date-time",
             "nullable": true
           },
+          "is_prefs_and_rec_product_match": {
+            "maxLength": 100,
+            "type": "boolean",
+            "description": "Recommendation and preference mismatch<br>q-af9fe5ae-4fc9-4955-8bd4-7e78d8ce628e",
+            "nullable": true
+          },
+          "reason_for_recommending_unmatched_product_note": {
+            "maxLength": 1000,
+            "type": "string",
+            "description": "Reason for recommendation mismatch<br>q-8ed1eeb5-b0f4-4923-af45-966665406d2c",
+            "nullable": true
+          },
           "bridging_details": {
             "$ref": "#/components/schemas/BridgingScenarioProductDetails"
           },
@@ -19093,7 +19787,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -19238,7 +19931,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -19571,12 +20263,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -19613,12 +20303,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -19635,8 +20323,9 @@
             "nullable": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "MortgageProviderId",
+            "description": "Lender name<br>q-5ccfa840-31ec-40a9-bbf7-6f9303cbd3c7",
             "nullable": true
           },
           "dip_transaction_lender_reference": {
@@ -20101,7 +20790,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -20207,12 +20895,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -20379,7 +21065,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -20461,8 +21146,9 @@
             "nullable": true
           },
           "policy_provider_general_insurance_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderInsuranceId",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "policy_provider_other_name": {
@@ -20475,6 +21161,12 @@
             "maxLength": 100,
             "type": "string",
             "description": "Paymentshield underwriter<br>Possible values: ageas, allianz, arc, axa, covea, highway_insurance_lv, integra, prestige, property_guard, royal_sun_alliance, tradex, uk_general, zurich<br>q-07c184c1-9b48-4eee-bae1-97236aa1b926",
+            "nullable": true
+          },
+          "policy_provider_3xd_underwriter_name_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "3XD underwriter<br>Possible values: allianz, integra, midas, paragon, pen_underwriting<br>q-79996664-f003-4e4a-9ad2-86c931609563",
             "nullable": true
           },
           "policy_provider_uinsure_underwriter_name_key": {
@@ -20589,7 +21281,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -20768,7 +21459,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -20880,8 +21570,9 @@
             "nullable": true
           },
           "policy_provider_protection_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderProtectionId",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "policy_provider_other_name": {
@@ -20991,7 +21682,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -21069,8 +21759,9 @@
             "nullable": true
           },
           "policy_provider_general_insurance_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Provider Id",
+            "description": "Provider partner<br>q-fb0fcc58-03cd-4891-91ad-7a491be50bdf",
             "nullable": true
           },
           "policy_provider_other_name": {
@@ -21369,7 +22060,7 @@
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           }
         },
@@ -21381,12 +22072,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -21413,8 +22102,9 @@
             "nullable": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Mortgage provider Id",
+            "description": "Lender<br>q-e8cb20a1-b796-42fb-acec-f278b15009ac",
             "nullable": true
           },
           "mortgage_provider_name_key": {
@@ -21555,6 +22245,18 @@
             "format": "date-time",
             "nullable": true
           },
+          "is_prefs_and_rec_product_match": {
+            "maxLength": 100,
+            "type": "boolean",
+            "description": "Recommendation and preference mismatch<br>q-af9fe5ae-4fc9-4955-8bd4-7e78d8ce628e",
+            "nullable": true
+          },
+          "reason_for_recommending_unmatched_product_note": {
+            "maxLength": 1000,
+            "type": "string",
+            "description": "Reason for recommendation mismatch<br>q-8ed1eeb5-b0f4-4923-af45-966665406d2c",
+            "nullable": true
+          },
           "mortgage_application_transaction_type_key": {
             "maxLength": 100,
             "type": "string",
@@ -21615,12 +22317,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           }
@@ -21633,12 +22333,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -21674,8 +22372,9 @@
             "nullable": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "MortgageProviderId",
+            "description": "Lender<br>q-e8cb20a1-b796-42fb-acec-f278b15009ac",
             "nullable": true
           },
           "mb_product_reference": {
@@ -21827,6 +22526,18 @@
             "maxLength": 100,
             "type": "boolean",
             "description": "Pin<br>q-2209df45-1b2f-49eb-976b-f55743074c32",
+            "nullable": true
+          },
+          "is_prefs_and_rec_product_match": {
+            "maxLength": 100,
+            "type": "boolean",
+            "description": "Recommendation and preference mismatch<br>q-af9fe5ae-4fc9-4955-8bd4-7e78d8ce628e",
+            "nullable": true
+          },
+          "reason_for_recommending_unmatched_product_note": {
+            "maxLength": 1000,
+            "type": "string",
+            "description": "Reason for recommendation mismatch<br>q-8ed1eeb5-b0f4-4923-af45-966665406d2c",
             "nullable": true
           },
           "reporting": {
@@ -22103,12 +22814,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -22190,7 +22899,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -22366,12 +23074,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -22547,7 +23253,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -22894,6 +23599,14 @@
           "consent_details": {
             "$ref": "#/components/schemas/ClientConsent"
           },
+          "client_data_requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientDataRequest"
+            },
+            "description": "Client data requests",
+            "nullable": true
+          },
           "id_verification": {
             "type": "array",
             "items": {
@@ -23013,12 +23726,13 @@
           "terms_accepted_at": {
             "type": "string",
             "description": "Current Terms and conditions accepted date",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "terms_accepted_version": {
-            "type": "integer",
+            "type": "string",
             "description": "Current Terms and conditions accepted version",
-            "format": "int32"
+            "nullable": true
           },
           "has_client_review_task": {
             "type": "boolean",
@@ -23092,12 +23806,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -23200,7 +23912,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -23357,7 +24068,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -23543,12 +24253,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -23842,15 +24550,6 @@
             "description": "Preferred method of contact<br>Possible values: no_preference, phone, email<br>q-fb26fefa-1b89-4cd7-bd86-f4cfa489704a",
             "nullable": true
           },
-          "contact_methods": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ClientContactMethod"
-            },
-            "description": "ContactMethods",
-            "nullable": true,
-            "deprecated": true
-          },
           "phones": {
             "type": "array",
             "items": {
@@ -23871,56 +24570,15 @@
         "additionalProperties": false,
         "description": "ClientContactDetails"
       },
-      "ClientContactMethod": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "array_id": {
-            "type": "string",
-            "default": null,
-            "nullable": true,
-            "readOnly": true
-          },
-          "method": {
-            "type": "string",
-            "description": "Method<br>",
-            "nullable": true
-          },
-          "value": {
-            "type": "string",
-            "description": "Value<br>",
-            "nullable": true
-          },
-          "type": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "🔥 Type (v1)<br>Possible values: personal, work<br>q-e78ec419-cbf7-4774-acbc-9f16fc76f469",
-            "nullable": true
-          },
-          "default": {
-            "type": "boolean",
-            "description": "is default?<br>",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "ClientContactMethod"
-      },
       "ClientContactMethodEmail": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -23952,12 +24610,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -24007,7 +24663,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -24085,23 +24740,6 @@
             "type": "string",
             "description": "Credit issue type<br>Possible values: arrears_missed_payments, bankruptcy_sequestration, county_court_judgement, default, debt_relief_order, individual_voluntary_arrangement, debt_management_plan, repossession<br>q-3977ebf4-41d1-436b-bffe-00efe6fcc9b1",
             "nullable": true
-          },
-          "reason": {
-            "type": "string",
-            "description": "Reason",
-            "nullable": true,
-            "deprecated": true
-          },
-          "explanation": {
-            "type": "string",
-            "description": "Explanation",
-            "nullable": true,
-            "deprecated": true
-          },
-          "to_be_satisfied": {
-            "type": "boolean",
-            "description": "To be satisfied before completion of new mortgage?",
-            "deprecated": true
           },
           "iva_details": {
             "$ref": "#/components/schemas/CreditHistoryIVA"
@@ -24264,6 +24902,41 @@
         "additionalProperties": false,
         "description": "Client data import DTO"
       },
+      "ClientDataRequest": {
+        "type": "object",
+        "properties": {
+          "array_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "client_data_request_type_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Request type<br>Possible values: dsar, rtbf<br>q-4716bc57-1579-46d7-acca-7316fdbab455",
+            "nullable": true
+          },
+          "client_data_request_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Request date<br>q-37ad6f45-241e-455f-9652-1349cfab6f4a",
+            "format": "date-time"
+          },
+          "client_data_requested_by": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Requested by<br>q-db808ac8-921c-47f8-8543-5d70983aa1e9",
+            "nullable": true
+          },
+          "client_data_requested_by_user_type_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "User type<br>Possible values: user, client, introducer<br>q-0a583595-ab1e-413f-91b0-be96708203ff",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "ClientDataRequests"
+      },
       "ClientDefaultValueResult": {
         "type": "object",
         "properties": {
@@ -24308,7 +24981,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -24569,7 +25241,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "idv_method_key": {
@@ -24636,7 +25307,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -24899,12 +25569,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -24929,7 +25597,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -25034,8 +25701,9 @@
             "deprecated": true
           },
           "mortgage_provider_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "MortgageProviderId",
+            "description": "Lender name<br>q-5ccfa840-31ec-40a9-bbf7-6f9303cbd3c7",
             "nullable": true
           },
           "mortgage_provider_other_name": {
@@ -25154,12 +25822,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -25232,7 +25898,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -25331,7 +25996,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -25478,7 +26142,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "email": {
@@ -25589,6 +26252,39 @@
         },
         "additionalProperties": false,
         "description": "Case detail"
+      },
+      "ClientPortalCreditCommitment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Commitment ID",
+            "nullable": true
+          },
+          "linked_clients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "<inheritdoc />",
+            "nullable": true
+          },
+          "commitment_account_status_key": {
+            "type": "string",
+            "description": "Status",
+            "nullable": true
+          },
+          "commitment_type_key": {
+            "type": "string",
+            "description": "Type",
+            "nullable": true
+          },
+          "commitment_details": {
+            "$ref": "#/components/schemas/CommitmentDetailsDto"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Client credit  commitments DTO"
       },
       "ClientPortalCreditHistoryDetail": {
         "type": "object",
@@ -25958,7 +26654,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -26345,7 +27040,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -26465,14 +27159,6 @@
             "description": "AVM matched address<br>q-361e1efa-edee-41d2-8707-4c01afcf4700",
             "nullable": true
           },
-          "property_purchase_amount": {
-            "maxLength": 100,
-            "type": "number",
-            "description": "Purchase/Sale price<br>q-b9b33459-6316-4409-a6e1-eedcc03013ed",
-            "format": "double",
-            "nullable": true,
-            "deprecated": true
-          },
           "exchange_date": {
             "maxLength": 100,
             "type": "string",
@@ -26504,7 +27190,7 @@
           "avm_rental_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Date of AVM<br>q-d200f4f3-6c30-4fdc-b39e-7366ba6c106f",
+            "description": "Date of Rental AVM<br>q-d200f4f3-6c30-4fdc-b39e-7366ba6c106f",
             "format": "date-time",
             "nullable": true
           },
@@ -26525,7 +27211,7 @@
           "avm_rental_confidence_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Confidence<br>Possible values: low, medium, high<br>q-4d0356c4-3308-4c66-939d-3d9e19b59441",
+            "description": "Rental Confidence<br>Possible values: low, medium, high<br>q-4d0356c4-3308-4c66-939d-3d9e19b59441",
             "nullable": true
           },
           "clients_have_lived_in_property": {
@@ -26705,7 +27391,7 @@
           "property_heating_type_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Heating type<br>Possible values: mains_gas, electric, oil, coal, bottled_gas, lpg, unknown, other<br>q-4f9f5009-afaa-4670-a880-b50a0792864d",
+            "description": "Heating type<br>Possible values: bottled_gas, coal, electric, heat_pump, lpg, mains_gas, oil, unknown, other<br>q-4f9f5009-afaa-4670-a880-b50a0792864d",
             "nullable": true
           },
           "property_tenure_key": {
@@ -26889,12 +27575,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -27302,7 +27986,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -27460,12 +28143,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -27492,12 +28173,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -27702,12 +28381,13 @@
           "terms_accepted_at": {
             "type": "string",
             "description": "Current Terms and conditions accepted date",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "terms_accepted_version": {
-            "type": "integer",
+            "type": "string",
             "description": "Current Terms and conditions accepted version",
-            "format": "int32"
+            "nullable": true
           },
           "marketing_prefs": {
             "$ref": "#/components/schemas/ClientConsentMarketingPreferences"
@@ -27943,7 +28623,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -28117,7 +28796,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "commission_split_type_key": {
@@ -28198,8 +28876,9 @@
             "nullable": true
           },
           "commission_expected_net_amount": {
+            "maxLength": 100,
             "type": "number",
-            "description": "ExpectedNetAmount",
+            "description": "Net amount expected to firm<br>q-0f7cbdb2-1fa7-4682-a860-fa10c4832052",
             "format": "double",
             "nullable": true
           },
@@ -28233,8 +28912,9 @@
             "nullable": true
           },
           "commission_client_fee_due_at_stage_key": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ClientFeeDueAtStage",
+            "description": "Payable on<br>Possible values: up_front, on_application, offer_terms_issued, completion<br>q-1e17fe84-c602-4e0a-b49e-fe43d843e20c",
             "nullable": true
           },
           "commission_referral_fee_due_at_stage_key": {
@@ -28279,18 +28959,19 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "commission_fee_waiver_amount": {
+            "maxLength": 100,
             "type": "number",
-            "description": "WaiverAmount",
+            "description": "Amount of fee waived<br>q-3f04cea5-3c77-4f56-be1a-cbb0fcf9fec6",
             "format": "double",
             "nullable": true
           },
           "commission_fee_waiver_reason_key": {
+            "maxLength": 100,
             "type": "string",
-            "description": "WaiverReason",
+            "description": "Fee waiver reason<br>Possible values: complaint, good_will_gesture, multiple_applications, error_on_firms_part, referral_from_an_existing_client, promotional_offer, other<br>q-c46b19e9-023e-4df5-97f1-43ce107ad54c",
             "nullable": true
           },
           "commission_fee_waiver_other_reason": {
@@ -28334,7 +29015,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "commission_payment_status_key": {
@@ -28389,12 +29069,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -28494,6 +29172,99 @@
         },
         "additionalProperties": false,
         "description": "Commitment card details"
+      },
+      "CommitmentDetailsDto": {
+        "type": "object",
+        "properties": {
+          "commitment_provider_name_key": {
+            "type": "string",
+            "description": "Provider",
+            "nullable": true
+          },
+          "commitment_provider_other_name": {
+            "type": "string",
+            "description": "Other Provider",
+            "nullable": true
+          },
+          "commitment_start_date": {
+            "type": "string",
+            "description": "Start date",
+            "format": "date-time",
+            "nullable": true
+          },
+          "commitment_term_months": {
+            "type": "integer",
+            "description": "Term in months",
+            "format": "int32",
+            "nullable": true
+          },
+          "commitment_interest_rate_percentage": {
+            "type": "number",
+            "description": "Interest rate",
+            "format": "double",
+            "nullable": true
+          },
+          "commitment_monthly_repayment_amount": {
+            "type": "number",
+            "description": "Monthly payment",
+            "format": "double",
+            "nullable": true
+          },
+          "commitment_agreed_limit_amount": {
+            "type": "number",
+            "description": "Credit limit",
+            "format": "double",
+            "nullable": true
+          },
+          "commitment_is_credit_card_cleared_monthly": {
+            "type": "boolean",
+            "description": "Is cleared monthly",
+            "nullable": true
+          },
+          "commitment_other_type_key": {
+            "type": "string",
+            "description": "Commitment type",
+            "nullable": true
+          },
+          "commitment_type_other_description": {
+            "type": "string",
+            "description": "Description",
+            "nullable": true
+          },
+          "is_commitment_end_date_known": {
+            "type": "boolean",
+            "description": "Has end date",
+            "nullable": true
+          },
+          "commitment_end_date": {
+            "type": "string",
+            "description": "End date",
+            "format": "date-time",
+            "nullable": true
+          },
+          "commitment_final_balloon_payment_amount": {
+            "type": "number",
+            "description": "FinalBalloonPayment",
+            "format": "double",
+            "nullable": true
+          },
+          "commitment_borrowed_amount": {
+            "type": "integer",
+            "description": "Initial loan amount",
+            "format": "int32",
+            "nullable": true
+          },
+          "balance_history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommitmentBalanceHistory"
+            },
+            "description": "Outstanding balance history",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Commitment card DTO"
       },
       "CommitmentHirePurchaseDetails": {
         "type": "object",
@@ -29017,12 +29788,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -29142,70 +29911,6 @@
       "ContactAttempt": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "deleted_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "created_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "created_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "last_updated_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "schema_version": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "account_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "network_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "governance_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "cluster_id": {
-            "type": "string",
-            "nullable": true
-          },
           "user_id": {
             "type": "string",
             "description": "UserId",
@@ -29239,12 +29944,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -29408,6 +30111,22 @@
         "additionalProperties": false,
         "description": "Correspondence Address"
       },
+      "CorrespondenceData": {
+        "type": "object",
+        "properties": {
+          "clients_combined_names": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Client combined name<br>q-b3ad3a23-de76-4417-ad38-ec7296031f2e",
+            "nullable": true
+          },
+          "correspondence_address": {
+            "$ref": "#/components/schemas/CorrespondenceAddress"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Correspondence data"
+      },
       "CoverBasis": {
         "enum": [
           1,
@@ -29449,7 +30168,8 @@
           3,
           4,
           5,
-          6
+          6,
+          7
         ],
         "type": "integer",
         "description": "Cover Purpose",
@@ -30232,12 +30952,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -30561,12 +31279,12 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "created_by": {
             "type": "string",
@@ -30579,6 +31297,10 @@
             "$ref": "#/components/schemas/EventDatabaseOperation"
           },
           "case_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "parent_document_id": {
             "type": "string",
             "nullable": true
           },
@@ -30644,7 +31366,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_income_benefit_period_amount": {
@@ -30669,7 +31390,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_preference_income_benefit_deferred_key": {
@@ -30800,6 +31520,19 @@
             "type": "string",
             "description": "DueDate",
             "format": "date-time",
+            "nullable": true
+          },
+          "linked_company_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Linked company client IDs",
+            "nullable": true
+          },
+          "is_company_case": {
+            "type": "boolean",
+            "description": "Is company case",
             "nullable": true
           }
         },
@@ -30944,70 +31677,6 @@
       "Enquiry": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "deleted_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "created_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "created_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "last_updated_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "schema_version": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "account_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "network_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "governance_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "cluster_id": {
-            "type": "string",
-            "nullable": true
-          },
           "qualified_date": {
             "type": "string",
             "description": "QualifiedDate",
@@ -31030,6 +31699,68 @@
         },
         "additionalProperties": false,
         "description": "Enquiry Entity"
+      },
+      "Entity": {
+        "required": [
+          "externalId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Gets or sets the name.",
+            "nullable": true
+          },
+          "entityTypeId": {
+            "$ref": "#/components/schemas/EntityType"
+          },
+          "externalId": {
+            "type": "string",
+            "description": "Gets or sets the external identifier.",
+            "nullable": true
+          },
+          "address": {
+            "$ref": "#/components/schemas/EntityAddress"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Entity"
+      },
+      "EntityAddress": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "nullable": true
+          },
+          "line2": {
+            "type": "string",
+            "nullable": true
+          },
+          "line3": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "county": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Entity Address"
       },
       "EntityDifference": {
         "type": "object",
@@ -31056,6 +31787,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "EntityType": {
+        "enum": [
+          1,
+          2
+        ],
+        "type": "integer",
+        "description": "Entity Id",
+        "format": "int32"
       },
       "EquityReleaseDetails": {
         "type": "object",
@@ -31108,19 +31848,17 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           },
           "mortgage_part_initial_advance_amount": {
@@ -31153,12 +31891,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -31184,7 +31920,7 @@
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           },
           "repayment_parts": {
@@ -31523,12 +32259,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -31562,12 +32296,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -31647,27 +32379,27 @@
           "case_requirement_property_ownership_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
+            "description": "Property Ownership completion date<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_property_ownership_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351",
+            "description": "Property Ownership completion status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351",
             "nullable": true
           },
           "case_requirement_security_property_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
+            "description": "Security Property completion date<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_security_property_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a",
+            "description": "Security Property completion status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a",
             "nullable": true
           },
           "case_requirement_estate_planning_state_key": {
@@ -31699,27 +32431,27 @@
           "case_requirement_health_lifestyle_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
+            "description": "Health & Lifestyle completion date<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_health_lifestyle_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f",
+            "description": "Health & Lifestyle completion status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f",
             "nullable": true
           },
           "case_requirement_loan_prefs_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
+            "description": "Loan & Product Prefs completion date<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_loan_prefs_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8",
+            "description": "Loan & Product Prefs completion status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8",
             "nullable": true
           }
         },
@@ -32706,7 +33438,7 @@
           },
           "imported_data": {
             "type": "object",
-            "additionalProperties": { },
+            "additionalProperties": {},
             "description": "Imported data",
             "nullable": true
           }
@@ -32785,12 +33517,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -32858,12 +33588,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -32913,12 +33641,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -32948,12 +33674,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -33337,158 +34061,158 @@
           "case_fact_find_personal_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b856bc31-e777-4e22-bf0a-4f4cc50682ea",
+            "description": "Personal Details completion date<br>q-b856bc31-e777-4e22-bf0a-4f4cc50682ea",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_address_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b74adf92-f750-4186-85e2-d58a3b78b958",
+            "description": "Address completion date<br>q-b74adf92-f750-4186-85e2-d58a3b78b958",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_dependants_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-20090e31-8e40-43d1-be64-d41335ef5a53",
+            "description": "Dependants completion date<br>q-20090e31-8e40-43d1-be64-d41335ef5a53",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_employment_income_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b2bdb930-f028-4a1d-821a-8f7a7db2b5bf",
+            "description": "Employment & Income completion date<br>q-b2bdb930-f028-4a1d-821a-8f7a7db2b5bf",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_credit_issues_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-58fbd0c4-2dc5-401b-826d-155b9864348a",
+            "description": "Credit History completion date<br>q-58fbd0c4-2dc5-401b-826d-155b9864348a",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_commitments_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-3992488f-36a5-4b2c-a660-602ed404c529",
+            "description": "Commitments completion date<br>q-3992488f-36a5-4b2c-a660-602ed404c529",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_properties_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-79cc1117-20a5-4142-b60a-3aca7e1afe44",
+            "description": "Properties completion date<br>q-79cc1117-20a5-4142-b60a-3aca7e1afe44",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_mortgages_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-49846141-3f4c-4100-b9ef-205034109537",
+            "description": "Mortgages completion date<br>q-49846141-3f4c-4100-b9ef-205034109537",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_policies_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-2a73e521-e384-4ac0-b311-69d54755847f",
+            "description": "Policies completion date<br>q-2a73e521-e384-4ac0-b311-69d54755847f",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_savings_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-088c2aae-df47-4f92-9300-50474fedbc19",
+            "description": "Savings & Investments completion date<br>q-088c2aae-df47-4f92-9300-50474fedbc19",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_vulnerabilities_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f27f0c45-f3e3-45a0-87f6-4f2547b122cb",
+            "description": "Vulnerable Customer completion date<br>q-f27f0c45-f3e3-45a0-87f6-4f2547b122cb",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_company_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-afa12c89-f533-4232-bbaa-4ce38e016137",
+            "description": "Company Client Details completion date<br>q-afa12c89-f533-4232-bbaa-4ce38e016137",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_budget_planner_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-2f269599-a9c7-47cc-b123-c6176b9ff04c",
+            "description": "Budget Planner completion date<br>q-2f269599-a9c7-47cc-b123-c6176b9ff04c",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_company_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d23d1bb8-82c7-41e6-b1f0-f517e1a8adb6"
+            "description": "Company Client Details completion status<br>Possible values: true, false<br>q-d23d1bb8-82c7-41e6-b1f0-f517e1a8adb6"
           },
           "case_fact_find_personal_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-52d68784-85b7-4493-8441-c2521245ec57"
+            "description": "Personal Details completion status<br>Possible values: true, false<br>q-52d68784-85b7-4493-8441-c2521245ec57"
           },
           "case_fact_find_address_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-7698c87f-08a0-46da-8106-7ac77b344823"
+            "description": "Address completion status<br>Possible values: true, false<br>q-7698c87f-08a0-46da-8106-7ac77b344823"
           },
           "case_fact_find_dependants_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-406ccec1-fc58-4566-ad4b-30e9cd0e103c"
+            "description": "Dependants completion status<br>Possible values: true, false<br>q-406ccec1-fc58-4566-ad4b-30e9cd0e103c"
           },
           "case_fact_find_employment_income_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-30783907-f3ea-476d-9571-b9c29ca751cc"
+            "description": "Employment & Income completion status<br>Possible values: true, false<br>q-30783907-f3ea-476d-9571-b9c29ca751cc"
           },
           "case_fact_find_credit_issues_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-4e18c1a8-c780-420c-b0b9-8419a254b8ac"
+            "description": "Credit History completion status<br>Possible values: true, false<br>q-4e18c1a8-c780-420c-b0b9-8419a254b8ac"
           },
           "case_fact_find_commitments_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-f9770ca5-ac3d-4ca4-8132-ae45773286f8"
+            "description": "Commitments completion status<br>Possible values: true, false<br>q-f9770ca5-ac3d-4ca4-8132-ae45773286f8"
           },
           "case_fact_find_properties_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-3201d64a-c5b7-4330-9678-b3eba0164ddc"
+            "description": "Properties completion status<br>Possible values: true, false<br>q-3201d64a-c5b7-4330-9678-b3eba0164ddc"
           },
           "case_fact_find_mortgages_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-a3ac993c-f10d-4cd9-bb9e-4f2f73c3e928"
+            "description": "Mortgages completion status<br>Possible values: true, false<br>q-a3ac993c-f10d-4cd9-bb9e-4f2f73c3e928"
           },
           "case_fact_find_policies_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-9a5d3259-a9fe-44d2-b413-c9ddb7ee3131"
+            "description": "Policies completion status<br>Possible values: true, false<br>q-9a5d3259-a9fe-44d2-b413-c9ddb7ee3131"
           },
           "case_fact_find_savings_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-6329d25d-6f9e-44b2-a8d6-5c3aaa4d9298"
+            "description": "Savings & Investments completion status<br>Possible values: true, false<br>q-6329d25d-6f9e-44b2-a8d6-5c3aaa4d9298"
           },
           "case_fact_find_vulnerabilities_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-153bf83e-3341-4a4f-9f72-b6af8cbe074b"
+            "description": "Vulnerable Customer completion status<br>Possible values: true, false<br>q-153bf83e-3341-4a4f-9f72-b6af8cbe074b"
           },
           "case_fact_find_budget_planner_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-c73e234c-f2f2-4929-9c7b-e96f536993f1"
+            "description": "Budget Planner completion status<br>Possible values: true, false<br>q-c73e234c-f2f2-4929-9c7b-e96f536993f1"
           }
         },
         "additionalProperties": false,
@@ -33583,39 +34307,39 @@
           "case_fact_find_properties_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-3201d64a-c5b7-4330-9678-b3eba0164ddc",
+            "description": "Properties completion status<br>Possible values: true, false<br>q-3201d64a-c5b7-4330-9678-b3eba0164ddc",
             "nullable": true
           },
           "case_fact_find_properties_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-79cc1117-20a5-4142-b60a-3aca7e1afe44",
+            "description": "Properties completion date<br>q-79cc1117-20a5-4142-b60a-3aca7e1afe44",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_mortgages_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-a3ac993c-f10d-4cd9-bb9e-4f2f73c3e928",
+            "description": "Mortgages completion status<br>Possible values: true, false<br>q-a3ac993c-f10d-4cd9-bb9e-4f2f73c3e928",
             "nullable": true
           },
           "case_fact_find_mortgages_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-49846141-3f4c-4100-b9ef-205034109537",
+            "description": "Mortgages completion date<br>q-49846141-3f4c-4100-b9ef-205034109537",
             "format": "date-time",
             "nullable": true
           },
           "case_fact_find_policies_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-9a5d3259-a9fe-44d2-b413-c9ddb7ee3131",
+            "description": "Policies completion status<br>Possible values: true, false<br>q-9a5d3259-a9fe-44d2-b413-c9ddb7ee3131",
             "nullable": true
           },
           "case_fact_find_policies_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-2a73e521-e384-4ac0-b311-69d54755847f",
+            "description": "Policies completion date<br>q-2a73e521-e384-4ac0-b311-69d54755847f",
             "format": "date-time",
             "nullable": true
           }
@@ -33628,12 +34352,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -33875,51 +34597,6 @@
             "description": "Completed<br>q-0d7994c4-5eff-4c6b-bb04-dcabc0324e3d",
             "format": "date-time",
             "nullable": true
-          },
-          "case_application_terms_issued_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Terms issued<br>Possible values: true, false<br>q-9b741fb3-4cc1-43b4-90d3-78dd14c0c174",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_issued_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-cd131c44-d805-4933-9474-58ee34a5a3dc",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_accepted_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Terms accepted<br>Possible values: true, false<br>q-81a36366-4b7f-4b68-b901-276365eca9d8",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_accepted_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-d065a412-1a5a-4887-9781-2e594f740a53",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_policy_started_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Policy started<br>Possible values: true, false<br>q-037ec2fc-1302-4e03-8d70-7350110ee099",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_policy_started_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-77280730-2d12-4c58-9e53-1a9803d4fa42",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
           }
         },
         "additionalProperties": false,
@@ -33985,6 +34662,13 @@
             "description": "Cover start date<br>q-5b542b03-83c9-4bf2-9277-1ae2b859d73d",
             "format": "date-time",
             "nullable": true
+          },
+          "estimated_on_risk_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated on risk date<br>q-db99d102-5c94-4864-bfbd-219d854255cc",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -33996,14 +34680,14 @@
           "case_requirement_needs_preferences_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
+            "description": "Needs Preferences completion date<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_preferences_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
+            "description": "Needs Preferences completion status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
           },
           "case_requirement_insured_property_completion_date": {
             "maxLength": 100,
@@ -34020,26 +34704,26 @@
           "case_requirement_research_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
+            "description": "Research completion date<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_research_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6"
+            "description": "Research completion status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6"
           },
           "case_requirement_recommend_apply_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
+            "description": "Recommend & Apply completion date<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_recommend_apply_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
+            "description": "Recommend & Apply completion status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
           }
         },
         "additionalProperties": false,
@@ -34701,12 +35385,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -34748,12 +35430,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -34785,12 +35465,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -34834,13 +35512,6 @@
             "type": "string",
             "description": "Job title<br>q-9bf1561e-2ef1-4e6c-9acd-6379cb2f9fce",
             "nullable": true
-          },
-          "contract_type": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "🔥 Contract Type (OLD) (v1)<br>Possible values: full, part<br>q-ff439e87-5253-4677-b521-050a0adacab3",
-            "nullable": true,
-            "deprecated": true
           },
           "employment_contract_type_key": {
             "maxLength": 100,
@@ -34993,12 +35664,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35031,12 +35700,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35080,20 +35747,12 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
-          },
-          "sick_pay_part": {
-            "type": "string",
-            "description": "Part - Obsolete<br>",
-            "nullable": true,
-            "deprecated": true
           },
           "employer_sick_pay_period_count": {
             "maxLength": 100,
@@ -35177,12 +35836,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35224,12 +35881,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35340,12 +35995,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35372,12 +36025,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35441,6 +36092,9 @@
             "description": "Gets or sets the external applicant id.",
             "nullable": true
           },
+          "coverType": {
+            "$ref": "#/components/schemas/IncomeProtectionCoverType"
+          },
           "payout": {
             "$ref": "#/components/schemas/IncomeProtectionPayout"
           },
@@ -35453,6 +36107,16 @@
         },
         "additionalProperties": false,
         "description": "Income Protection Benefits"
+      },
+      "IncomeProtectionCoverType": {
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "description": "Income protection cover type",
+        "format": "int32"
       },
       "IncomeProtectionPayout": {
         "type": "object",
@@ -35591,12 +36255,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35706,12 +36368,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -35796,12 +36456,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -36597,7 +37255,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -36911,70 +37568,6 @@
       "Lead": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "deleted_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "created_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "created_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "last_updated_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "schema_version": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "account_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "network_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "governance_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "cluster_id": {
-            "type": "string",
-            "nullable": true
-          },
           "qualified_date": {
             "type": "string",
             "description": "QualifiedDate",
@@ -37093,10 +37686,10 @@
       "Lifestyle": {
         "type": "object",
         "properties": {
-          "Height": {
+          "height": {
             "$ref": "#/components/schemas/MeasurementOfLength"
           },
-          "Weight": {
+          "weight": {
             "$ref": "#/components/schemas/MeasurementOfWeight"
           }
         },
@@ -37108,12 +37701,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -37401,39 +37992,44 @@
         "properties": {
           "length": {
             "type": "integer",
+            "description": "Gets or sets the length.",
             "format": "int32",
             "nullable": true
           },
           "unit": {
             "type": "integer",
+            "description": "Gets or sets the unit.",
             "format": "int32",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Measurement Of Length"
       },
       "MeasurementOfWeight": {
         "type": "object",
         "properties": {
           "weight": {
             "type": "integer",
+            "description": "Gets or sets the weight.",
             "format": "int32",
             "nullable": true
           },
           "unit": {
             "type": "integer",
+            "description": "Gets or sets the unit.",
             "format": "int32",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Measurement Of Weight"
       },
       "Message": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -37615,12 +38211,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -38051,12 +38645,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -38956,6 +39548,13 @@
             "description": "Date contracts exchanged<br>q-5d13fead-0f1f-43a5-b998-8543314c3430",
             "format": "date-time",
             "nullable": true
+          },
+          "estimated_completion_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated completion date<br>q-dcd46f5b-9f63-47b5-9f0a-ff68c844a499",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -38967,62 +39566,62 @@
           "case_requirement_property_ownership_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
+            "description": "Property Ownership completion date<br>q-781dac14-c2b3-486c-aace-35a3418adb9d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_property_ownership_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351"
+            "description": "Property Ownership completion status<br>Possible values: true, false<br>q-a7523f29-3ba9-496d-9321-4f941dc3a351"
           },
           "case_requirement_security_property_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
+            "description": "Security Property completion date<br>q-b9b07a0b-3626-4a7c-8870-aa6a95988c21",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_security_property_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a"
+            "description": "Security Property completion status<br>Possible values: true, false<br>q-ca31344c-4f48-4053-8178-129338c4d26a"
           },
           "case_requirement_loan_prefs_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
+            "description": "Loan & Product Prefs completion date<br>q-f298b086-a148-4609-b966-ed75cc959fe5",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_loan_prefs_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8"
+            "description": "Loan & Product Prefs completion status<br>Possible values: true, false<br>q-067a91d2-3723-47be-be2d-5196505e68d8"
           },
           "case_requirement_additional_questions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-132cad3b-a338-435a-ae49-33da59e3afab",
+            "description": "Additional Questions completion date<br>q-132cad3b-a338-435a-ae49-33da59e3afab",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_additional_questions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>q-849d78bd-52da-466d-a371-f77fd5d2220c"
+            "description": "Additional Questions completion status<br>Possible values: true, false<br>q-849d78bd-52da-466d-a371-f77fd5d2220c"
           },
           "case_requirement_recommend_apply_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
+            "description": "Recommend & Apply completion date<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_recommend_apply_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
+            "description": "Recommend & Apply completion status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
           }
         },
         "additionalProperties": false,
@@ -39234,7 +39833,7 @@
           },
           "imported_data": {
             "type": "object",
-            "additionalProperties": { },
+            "additionalProperties": {},
             "description": "Imported data",
             "nullable": true
           }
@@ -39379,6 +39978,9 @@
           "quoteMode": {
             "$ref": "#/components/schemas/QuoteModeType"
           },
+          "protectionType": {
+            "$ref": "#/components/schemas/ProtectionType"
+          },
           "externalQuoteRefId": {
             "type": "string",
             "description": "Gets or sets the external quote reference identifier.",
@@ -39394,6 +39996,9 @@
             },
             "description": "Gets or sets the applicants.",
             "nullable": true
+          },
+          "policyOwner": {
+            "$ref": "#/components/schemas/Entity"
           },
           "termBenefits": {
             "type": "array",
@@ -39417,6 +40022,11 @@
               "$ref": "#/components/schemas/AgencyProvider"
             },
             "description": "Gets or sets the agency providers.",
+            "nullable": true
+          },
+          "renewalOption": {
+            "type": "boolean",
+            "description": "Gets or sets the renewal option.",
             "nullable": true
           }
         },
@@ -39495,6 +40105,19 @@
             "description": "CaseReviewDate",
             "format": "date-time",
             "nullable": true
+          },
+          "linked_company_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Linked company client IDs",
+            "nullable": true
+          },
+          "is_company_case": {
+            "type": "boolean",
+            "description": "Is company case",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -39505,7 +40128,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -39799,6 +40421,12 @@
           "additional_info": {
             "$ref": "#/components/schemas/AdditionalInfo"
           },
+          "protection_additional_info": {
+            "$ref": "#/components/schemas/ProtectionAdditionalInfo"
+          },
+          "buildings_and_contents_additional_info": {
+            "$ref": "#/components/schemas/BuildingsAndContentsAdditionalInfo"
+          },
           "security_address": {
             "$ref": "#/components/schemas/Address"
           },
@@ -39865,70 +40493,6 @@
       "OpportunityComment": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "deleted_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "created_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "created_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "last_updated_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "schema_version": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "account_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "network_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "governance_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "cluster_id": {
-            "type": "string",
-            "nullable": true
-          },
           "user_id": {
             "type": "string",
             "description": "UserId",
@@ -40544,8 +41108,9 @@
             "nullable": true
           },
           "policy_provider_protection_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderId",
+            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
             "nullable": true
           },
           "policy_provider_other_name": {
@@ -40662,6 +41227,13 @@
             "description": "Cover start date<br>q-5b542b03-83c9-4bf2-9277-1ae2b859d73d",
             "format": "date-time",
             "nullable": true
+          },
+          "estimated_on_risk_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated on risk date<br>q-db99d102-5c94-4864-bfbd-219d854255cc",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -40691,79 +41263,79 @@
           "case_requirement_needs_analysis_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
+            "description": "Needs Analysis completion date<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_analysis_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc",
+            "description": "Needs Analysis completion status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc",
             "nullable": true
           },
           "case_requirement_needs_preferences_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
+            "description": "Needs Preferences completion date<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_preferences_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034",
+            "description": "Needs Preferences completion status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034",
             "nullable": true
           },
           "case_requirement_research_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
+            "description": "Research completion date<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_research_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6",
+            "description": "Research completion status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6",
             "nullable": true
           },
           "case_requirement_recommend_apply_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
+            "description": "Recommend & Apply completion date<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_recommend_apply_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b",
+            "description": "Recommend & Apply completion status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b",
             "nullable": true
           },
           "case_requirement_health_lifestyle_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
+            "description": "Health & Lifestyle completion date<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_health_lifestyle_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f",
+            "description": "Health & Lifestyle completion status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f",
             "nullable": true
           },
           "case_requirement_existing_provisions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
+            "description": "Existing Provisions completion date<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_existing_provisions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc",
+            "description": "Existing Provisions completion status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc",
             "nullable": true
           }
         },
@@ -40802,12 +41374,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -41023,8 +41593,9 @@
             "nullable": true
           },
           "policy_provider_protection_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderId",
+            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
             "nullable": true
           },
           "policy_provider_other_name": {
@@ -41160,6 +41731,13 @@
             "description": "Cover start date<br>q-5b542b03-83c9-4bf2-9277-1ae2b859d73d",
             "format": "date-time",
             "nullable": true
+          },
+          "estimated_on_risk_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated on risk date<br>q-db99d102-5c94-4864-bfbd-219d854255cc",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -41171,36 +41749,36 @@
           "case_requirement_existing_provisions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
+            "description": "Existing Provisions completion status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
           },
           "case_requirement_existing_provisions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
+            "description": "Existing Provisions completion date<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_health_lifestyle_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
+            "description": "Health & Lifestyle completion status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
           },
           "case_requirement_health_lifestyle_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
+            "description": "Health & Lifestyle completion date<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_preferences_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
+            "description": "Needs Preferences completion status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
           },
           "case_requirement_needs_preferences_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
+            "description": "Needs Preferences completion date<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
             "format": "date-time",
             "nullable": true
           }
@@ -41213,12 +41791,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -41504,7 +42080,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "Product": {
         "type": "object",
@@ -41857,12 +42433,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -42309,6 +42883,37 @@
         "additionalProperties": false,
         "description": "Protecting income"
       },
+      "ProtectionAdditionalInfo": {
+        "type": "object",
+        "properties": {
+          "has_opportunity_existing_protection_cover": {
+            "maxLength": 100,
+            "type": "boolean",
+            "description": "Is there existing Protection cover?<br>q-c39914a7-963f-4d62-8488-5c82d0623e0b",
+            "nullable": true
+          },
+          "opportunity_policy_type_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Policy type<br>Possible values: multi_plan, term, family_income_benefit, income_protection<br>q-56e65514-a682-47dc-82f8-4bf6bf944292",
+            "nullable": true
+          },
+          "protection_cover_type_key": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Cover type<br>Possible values: life, critical_illness, life_or_earlier_critical_illness, dual_life_critical_illness<br>q-a013b293-afbb-4bf2-b7ea-9c7ae3d4d59c",
+            "nullable": true
+          },
+          "policy_provider_protection_id": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Protection additional info"
+      },
       "ProtectionApplicationCompletion": {
         "type": "object",
         "properties": {
@@ -42357,6 +42962,13 @@
             "description": "Date application submitted<br>q-192f2965-ae7f-442a-8562-33f1e6086eb5",
             "format": "date-time",
             "nullable": true
+          },
+          "estimated_on_risk_date": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Estimated on risk date<br>q-db99d102-5c94-4864-bfbd-219d854255cc",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -42367,7 +42979,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "policy_asu_cover_type_key": {
@@ -42483,7 +43094,7 @@
           "has_application_reporting_gp_report_been_received": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "GP Report Requested?<br>q-5ce5d3a2-7e30-4e46-8037-e40f6cb0285d",
+            "description": "GP Report Received?<br>q-38233441-13c3-486d-8b26-08e705a5c218",
             "nullable": true
           },
           "has_application_reporting_medical_ass_been_requested": {
@@ -42745,8 +43356,9 @@
             "nullable": true
           },
           "has_protection_global_treatment_cover": {
+            "maxLength": 100,
             "type": "boolean",
-            "description": "Has protection global treatment cover<br>q-dd453a20-ce9e-4e7d-8452-d49f3f8ea5d89",
+            "description": "Global treatment cover<br>q-dd453a20-ce9e-4e7d-8452-d49f3f8ea5d8",
             "nullable": true
           },
           "has_protection_children_critical_illness_cover": {
@@ -42832,71 +43444,13 @@
             "maxLength": 100,
             "type": "boolean",
             "description": "Application Submission<br>Possible values: true, false<br>q-0550cd08-1703-4845-9e02-060a6da5d40c",
-            "nullable": true
+            "nullable": true,
+            "deprecated": true
           },
           "case_application_submission_completion_date": {
             "maxLength": 100,
             "type": "string",
             "description": "Completed<br>q-0897b411-723f-4c2a-82fe-7c6171a4948a",
-            "format": "date-time",
-            "nullable": true
-          },
-          "case_application_gp_report_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "GP Report<br>Possible values: true, false<br>q-f2b9c2bc-e6e2-4b87-a96a-2e1f6cddec68",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_gp_report_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-71a8d20e-a5fc-4e2d-b76d-756aee03b945",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_issued_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Terms issued<br>Possible values: true, false<br>q-9b741fb3-4cc1-43b4-90d3-78dd14c0c174",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_issued_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-cd131c44-d805-4933-9474-58ee34a5a3dc",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_accepted_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Terms accepted<br>Possible values: true, false<br>q-81a36366-4b7f-4b68-b901-276365eca9d8",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_terms_accepted_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-d065a412-1a5a-4887-9781-2e594f740a53",
-            "format": "date-time",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_policy_started_state_key": {
-            "maxLength": 100,
-            "type": "boolean",
-            "description": "Policy started<br>Possible values: true, false<br>q-037ec2fc-1302-4e03-8d70-7350110ee099",
-            "nullable": true,
-            "deprecated": true
-          },
-          "case_application_policy_started_completion_date": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Completed<br>q-77280730-2d12-4c58-9e53-1a9803d4fa42",
             "format": "date-time",
             "nullable": true,
             "deprecated": true
@@ -43125,7 +43679,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_covering_persons": {
@@ -43167,8 +43720,9 @@
             "nullable": true
           },
           "policy_provider_protection_id": {
+            "maxLength": 100,
             "type": "string",
-            "description": "ProviderProtectionId",
+            "description": "Provider<br>q-5287eb13-12ef-40fe-9d7b-c53f0cc0f516",
             "nullable": true
           },
           "policy_account_review_date": {
@@ -43360,7 +43914,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_covering_persons": {
@@ -43480,8 +44033,9 @@
             "nullable": true
           },
           "has_protection_global_treatment_cover": {
+            "maxLength": 100,
             "type": "boolean",
-            "description": "Has protection global treatment cover<br>q-dd453a20-ce9e-4e7d-8452-d49f3f8ea5d89",
+            "description": "Global treatment cover<br>q-dd453a20-ce9e-4e7d-8452-d49f3f8ea5d8",
             "nullable": true
           },
           "has_protection_children_critical_illness_cover": {
@@ -43542,6 +44096,14 @@
             "maxLength": 100,
             "type": "boolean",
             "description": "Renewal Option<br>q-f28221e7-f5dd-44f2-a019-081380548f48",
+            "nullable": true
+          },
+          "benefit_last_updated": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseSectionUpdatedDetails"
+            },
+            "description": "Last updated details for each benefit.",
             "nullable": true
           }
         },
@@ -43628,74 +44190,74 @@
           "case_requirement_needs_analysis_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
+            "description": "Needs Analysis completion date<br>q-b036ef35-561c-40ec-9e92-31d83afbc0a6",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_analysis_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc"
+            "description": "Needs Analysis completion status<br>Possible values: true, false<br>q-4c42bb84-fd29-4250-b10f-2b50a8ebc2fc"
           },
           "case_requirement_needs_preferences_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
+            "description": "Needs Preferences completion date<br>q-33551124-d9fe-47c9-926b-bfbfd5bcf964",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_needs_preferences_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
+            "description": "Needs Preferences completion status<br>Possible values: true, false<br>q-d47ae7ca-025f-4d21-8601-1fbb68711034"
           },
           "case_requirement_research_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
+            "description": "Research completion date<br>q-b8bc6b50-7c5b-40f9-8242-43447a3c87d9",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_research_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6"
+            "description": "Research completion status<br>Possible values: true, false<br>q-95661e88-8141-4c80-b1d2-47281e5decc6"
           },
           "case_requirement_recommend_apply_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
+            "description": "Recommend & Apply completion date<br>q-ce43d5a9-ffec-4066-bde9-a78872131c0d",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_recommend_apply_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
+            "description": "Recommend & Apply completion status<br>Possible values: true, false<br>q-94e18379-b890-45e0-a9bf-ebe453c47b8b"
           },
           "case_requirement_health_lifestyle_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
+            "description": "Health & Lifestyle completion date<br>q-f902af4c-f788-4769-bc9c-c5f1f39f88a4",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_health_lifestyle_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
+            "description": "Health & Lifestyle completion status<br>Possible values: true, false<br>q-e8685aa8-01fc-438a-87b3-ee810f9c640f"
           },
           "case_requirement_existing_provisions_completion_date": {
             "maxLength": 100,
             "type": "string",
-            "description": "Completed<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
+            "description": "Existing Provisions completion date<br>q-e55bf002-1754-4767-831d-c4da6a8c997b",
             "format": "date-time",
             "nullable": true
           },
           "case_requirement_existing_provisions_state_key": {
             "maxLength": 100,
             "type": "boolean",
-            "description": "Section status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
+            "description": "Existing Provisions completion status<br>Possible values: true, false<br>q-53f47d50-6fd2-495c-a072-b7acc204dbdc"
           }
         },
         "additionalProperties": false,
@@ -43754,12 +44316,20 @@
         "additionalProperties": false,
         "description": "A set of protection term options"
       },
+      "ProtectionType": {
+        "enum": [
+          1,
+          2
+        ],
+        "type": "integer",
+        "description": "Protection Type",
+        "format": "int32"
+      },
       "ProtectionTypeAsuPreferenceNeeds": {
         "type": "object",
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "protection_covering_persons": {
@@ -43818,12 +44388,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -43882,9 +44450,11 @@
           9,
           11,
           12,
+          15,
           17,
           20,
-          22
+          22,
+          23
         ],
         "type": "integer",
         "description": "Provider Ids provided in Novium Data Dictionary",
@@ -44410,6 +44980,19 @@
             },
             "description": "ClientIds<br>",
             "nullable": true
+          },
+          "linked_company_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Linked company client IDs",
+            "nullable": true
+          },
+          "is_company_case": {
+            "type": "boolean",
+            "description": "Is company case",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -44445,6 +45028,19 @@
             },
             "description": "ClientIds",
             "nullable": true
+          },
+          "linked_company_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Linked company client IDs",
+            "nullable": true
+          },
+          "is_company_case": {
+            "type": "boolean",
+            "description": "Is company case",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -44467,7 +45063,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -44712,7 +45307,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "comment_text": {
@@ -44795,12 +45389,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -44820,12 +45412,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -44863,7 +45453,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -45059,7 +45648,6 @@
         "properties": {
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "title_key": {
@@ -45238,72 +45826,6 @@
       },
       "Remortgage": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "default": null,
-            "nullable": true
-          },
-          "deleted_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "default": false
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "created_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "created_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "last_updated_by": {
-            "type": "string",
-            "nullable": true
-          },
-          "last_updated_by_user_type_key": {
-            "type": "string",
-            "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "schema_version": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "account_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "network_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "governance_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "cluster_id": {
-            "type": "string",
-            "nullable": true
-          }
-        },
         "additionalProperties": false,
         "description": "Remortgage Entity"
       },
@@ -45344,12 +45866,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -45914,6 +46434,25 @@
         },
         "additionalProperties": false,
         "description": "Contents Cover Requirement (for Key Import case)"
+      },
+      "RequirementDuplicateOptions": {
+        "type": "object",
+        "properties": {
+          "is_property_being_removed": {
+            "type": "boolean",
+            "description": "Data to identify if property must be linked or unlinked"
+          },
+          "commission_type": {
+            "type": "string",
+            "description": "Data to identify if commission must be linked or created",
+            "nullable": true
+          },
+          "commission": {
+            "$ref": "#/components/schemas/CommissionDto"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Marked for checking duplicate options"
       },
       "RequirementIpPhi": {
         "type": "object",
@@ -46701,6 +47240,21 @@
         "additionalProperties": false,
         "description": "Requirement Needs"
       },
+      "RequirementOverview": {
+        "required": [
+          "trans_type"
+        ],
+        "type": "object",
+        "properties": {
+          "trans_type": {
+            "type": "string",
+            "description": "The transaction type",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Class used to denote Bridging/Equity Release requirement overview details"
+      },
       "RequirementReporting": {
         "type": "object",
         "properties": {
@@ -47285,7 +47839,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "from": {
@@ -47360,12 +47913,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -47391,7 +47942,7 @@
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           },
           "mortgage_part_monthly_payment_amount": {
@@ -47476,19 +48027,17 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
           "mortgage_equity_release_repayment_method_key": {
             "maxLength": 100,
             "type": "string",
-            "description": "Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
+            "description": "Interest Repayment method<br>Possible values: interest_roll_up, lifetime_interest_only_serviced, part_and_part<br>q-e98f1bd1-0f4b-4974-a751-9a33075606ae",
             "nullable": true
           },
           "mortgage_part_initial_advance_amount": {
@@ -47715,12 +48264,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -48048,6 +48595,11 @@
           },
           "coverBasis": {
             "$ref": "#/components/schemas/CoverBasis"
+          },
+          "renewalOption": {
+            "type": "boolean",
+            "description": "Gets or sets the renewal option.",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -48098,9 +48650,9 @@
         "type": "object",
         "properties": {
           "version": {
-            "type": "integer",
+            "type": "string",
             "description": "Version",
-            "format": "int32"
+            "nullable": true
           },
           "accepted_at": {
             "type": "string",
@@ -48334,7 +48886,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -48434,6 +48985,9 @@
         "additionalProperties": false
       },
       "UserQuery": {
+        "required": [
+          "rule_model"
+        ],
         "type": "object",
         "properties": {
           "rule_model": {
@@ -48454,7 +49008,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -48600,7 +49153,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "deleted_by_user_type_key": {
@@ -48875,6 +49427,9 @@
           "requirement_needs": {
             "$ref": "#/components/schemas/RequirementNeeds"
           },
+          "correspondence_data": {
+            "$ref": "#/components/schemas/CorrespondenceData"
+          },
           "links": {
             "type": "array",
             "items": {
@@ -48981,12 +49536,10 @@
         "properties": {
           "id": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "array_id": {
             "type": "string",
-            "default": null,
             "nullable": true,
             "readOnly": true
           },
@@ -49099,10 +49652,23 @@
             "description": "UserReference.",
             "nullable": true
           },
+          "QuoteReference": {
+            "type": "string",
+            "description": "QuoteReference.",
+            "nullable": true
+          },
           "QuoteRequestId": {
             "type": "integer",
             "description": "QuoteRequestId.",
             "format": "int32",
+            "nullable": true
+          },
+          "LinkedQuotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookApplyResponseLinkedQuote"
+            },
+            "description": "LinkedQuotes.",
             "nullable": true
           },
           "Quote": {
@@ -49110,7 +49676,20 @@
           }
         },
         "additionalProperties": false,
-        "description": ""
+        "description": "Webhook Apply Response"
+      },
+      "WebhookApplyResponseLinkedQuote": {
+        "type": "object",
+        "properties": {
+          "quoteRequestId": {
+            "type": "integer",
+            "description": "QuoteRequestId.",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Webhook Apply Response Linked Quote."
       },
       "WebhookApplyResponseQuote": {
         "type": "object",
@@ -49122,7 +49701,7 @@
           }
         },
         "additionalProperties": false,
-        "description": ""
+        "description": "Webhook Apply Response Quote."
       },
       "WebhookPayload": {
         "type": "object",
@@ -49204,6 +49783,140 @@
       "introduceroauth2": [
         "openid"
       ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "AccountReportConfig"
+    },
+    {
+      "name": "Case Requirement Bridging Research"
+    },
+    {
+      "name": "Case Requirement Conveyancing Quotes"
+    },
+    {
+      "name": "Case Requirement Private Medical Insurance (PMI) Products"
+    },
+    {
+      "name": "Case Requirement Request"
+    },
+    {
+      "name": "Case Requirement Research Products"
+    },
+    {
+      "name": "Case Requirement Survey Quote"
+    },
+    {
+      "name": "CaseApplicationCreation"
+    },
+    {
+      "name": "CaseApplicationOverview"
+    },
+    {
+      "name": "CaseApplications"
+    },
+    {
+      "name": "CaseNotes"
+    },
+    {
+      "name": "CaseReassign"
+    },
+    {
+      "name": "CaseRequirements"
+    },
+    {
+      "name": "Cases"
+    },
+    {
+      "name": "CaseTasks"
+    },
+    {
+      "name": "Client Portal Only APIs"
+    },
+    {
+      "name": "Client Portal User Management"
+    },
+    {
+      "name": "ClientCommitments"
+    },
+    {
+      "name": "ClientCompanies"
+    },
+    {
+      "name": "ClientCreditHistories"
+    },
+    {
+      "name": "ClientDependants"
+    },
+    {
+      "name": "ClientEmploymentAndIncomes"
+    },
+    {
+      "name": "ClientMortgages"
+    },
+    {
+      "name": "ClientNotes"
+    },
+    {
+      "name": "ClientPolicies"
+    },
+    {
+      "name": "ClientPortalUsers"
+    },
+    {
+      "name": "ClientProperties"
+    },
+    {
+      "name": "Clients"
+    },
+    {
+      "name": "ClientSavings"
+    },
+    {
+      "name": "Dashboard"
+    },
+    {
+      "name": "DataImport"
+    },
+    {
+      "name": "Events"
+    },
+    {
+      "name": "GenericDataImport"
+    },
+    {
+      "name": "IntroducerPortalUsers"
+    },
+    {
+      "name": "KeyImportCases"
+    },
+    {
+      "name": "Message"
+    },
+    {
+      "name": "Opportunities"
+    },
+    {
+      "name": "Process Bundles"
+    },
+    {
+      "name": "Query"
+    },
+    {
+      "name": "Referral"
+    },
+    {
+      "name": "Root"
+    },
+    {
+      "name": "StatePension"
+    },
+    {
+      "name": "UserActivity"
+    },
+    {
+      "name": "Utilities"
     }
   ]
 }

@@ -428,7 +428,7 @@ const IncomePensionDetailsSchema = {
     }
 } as const satisfies ObjectSchema;
 
-const RentalTypeOptions: Record<string, string> = { profit_uk_land_property: "Profit UK Land Property" };
+const RentalTypeOptions = { profit_uk_land_property: "Profit UK Land Property" } as const;
 
 const IncomeRentalDetailsSchema = {
     type: "object" as const,
@@ -445,6 +445,8 @@ const IncomeRentalDetailsSchema = {
     fields: {
         id: { type: "string" as const },
         ...IncomeAmountFrequencyFields,
+        property_id: { type: "number" as const, label: "Property ID" },
+        /** year income was received */
         income_payment_year: { type: "number" as const, label: "Year" },
         income_rental_type: {
             type: "enum" as const,
@@ -454,7 +456,7 @@ const IncomeRentalDetailsSchema = {
     }
 } as const satisfies ObjectSchema;
 
-const OtherIncomeTypeOptions: Record<string, string> = {
+const OtherIncomeTypeOptions = {
     annuity: "Annuity",
     dividends_from_investments: "Dividends from Investments",
     trust_fund: "Trust Fund",

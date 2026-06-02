@@ -1,4 +1,4 @@
--- Documents (document-style storage)
+-- Documents (Account D1 — one database per account)
 -- File bytes live in R2; D1 stores the record JSON in `body` plus indexed/generated columns.
 CREATE TABLE IF NOT EXISTS documents (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

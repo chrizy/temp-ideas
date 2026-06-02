@@ -1,4 +1,4 @@
-import { ClientDependantSchema, type ClientDependant } from "~/models/client/dependant";
+import { ClientDependantSchema, type ClientDependant } from "~/models/client/client_dependant";
 import type { ValidationResult } from "~/utils/validation";
 import { processCreate, processUpdate, readEntity } from "./db-utils";
 import { parseTableRow, type TableRow, toUnixTimestamp } from "~/models/common/table";

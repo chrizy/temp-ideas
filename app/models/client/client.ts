@@ -1099,5 +1099,6 @@ export type IndividualClient = Extract<Client, { client_type: "individual" }>;
 export type CompanyClient = Extract<Client, { client_type: "company" }>;
 export type ClientAddress = SchemaToType<typeof ClientAddressSchema>;
 
-export type { ClientDependant } from "./dependant";
+export type { ClientDependant } from "./client_dependant";
 export type { ClientIncome } from "./client_income";
+export type { ClientCreditHistory } from "./client_credit_history";
