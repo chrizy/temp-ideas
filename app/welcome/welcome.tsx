@@ -1,4 +1,4 @@
-import { ClientSchema, type Client } from "~/models/client/client";
+import { ClientSchema, type Client } from "~/models/customer/client/client";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 import { FieldRenderer } from "~/components/field";

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { checkSectionCompletion } from "./isComplete";
-import { ClientSchema, type Client } from "~/models/client/client";
-import type { Group } from "~/models/admin/group";
+import { ClientSchema, type Client } from "~/models/customer/client/client";
+import type { Group } from "~/models/config/group";
 
 describe("Section Is Complete Validation", () => {
   // Helper to create a minimal group config

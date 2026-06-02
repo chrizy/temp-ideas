@@ -21,7 +21,7 @@
 
 import type { Schema } from "~/models/base_schema_types";
 import { resolveFieldSchema } from "~/models/base_schema_types";
-import type { Group, GroupSectionFieldRequirements } from "~/models/admin/group";
+import type { Group, GroupSectionFieldRequirements } from "~/models/config/group";
 import {
     getSectionFields,
     getFieldRequirement,

@@ -1,5 +1,5 @@
 import type { ArraySchema, ObjectSchema, SchemaToType } from "../base_schema_types";
-import { ClientConsentSchema } from "../client/client";
+import { ClientConsentSchema } from "../customer/client/client";
 import { TrackingSchema } from "../common/tracking";
 
 export const CaseCompleteSectionsSchema = {

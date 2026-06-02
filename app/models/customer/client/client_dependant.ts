@@ -1,6 +1,6 @@
-import type { ObjectSchema, SchemaToType } from "../base_schema_types";
-import { ImportedDataSchema } from "../common/import";
-import { TrackingSchema } from "../common/tracking";
+import type { ObjectSchema, SchemaToType } from "../../base_schema_types";
+import { ImportedDataSchema } from "../../common/import";
+import { TrackingSchema } from "../../common/tracking";
 
 /**
  * A dependant can be linked to multiple parent client IDs via `client_ids`.

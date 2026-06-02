@@ -1,5 +1,5 @@
-import { UserSchema, type User } from "~/models/admin/user";
-import { GroupSchema, type Group } from "~/models/admin/group";
+import { UserSchema, type User } from "~/models/config/user";
+import { GroupSchema, type Group } from "~/models/config/group";
 import { type ValidationResult } from "~/utils/validation";
 import { processUpdate, readEntity, processCreate, type CreateInput } from "./db-utils";
 import type { UserSession } from "./UserSession";

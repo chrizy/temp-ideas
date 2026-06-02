@@ -1,5 +1,5 @@
-import type { Client } from "~/models/client/client";
-import type { User, ClientAccessCapabilities } from "~/models/admin/user";
+import type { Client } from "~/models/customer/client/client";
+import type { User, ClientAccessCapabilities } from "~/models/config/user";
 import type { UserSession } from "./UserSession";
 
 const EMPTY_CAPABILITIES: ClientAccessCapabilities = {

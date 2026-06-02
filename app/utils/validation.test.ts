@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { validateObject, registerComputation } from "./validation";
 import { AddressSchema, type Address } from "~/models/common/address";
-import { ClientSchema, type Client } from "~/models/client/client";
+import { ClientSchema, type Client } from "~/models/customer/client/client";
 import type { Schema } from "~/models/base_schema_types";
 
 describe("validateObject - Computed Values", () => {

@@ -1,7 +1,7 @@
-import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../base_schema_types";
-import { AddressSchema } from "../common/address";
-import { ImportedDataSchema } from "../common/import";
-import { TrackingSchema } from "../common/tracking";
+import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../../base_schema_types";
+import { AddressSchema } from "../../common/address";
+import { ImportedDataSchema } from "../../common/import";
+import { TrackingSchema } from "../../common/tracking";
 
 /** Return display label for an enum value, or empty string if none. */
 function optionLabel(options: Record<string, string>, value: unknown): string {

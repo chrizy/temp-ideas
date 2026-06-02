@@ -1,4 +1,4 @@
-import { ClientSchema, type Client } from "~/models/client/client";
+import { ClientSchema, type Client } from "~/models/customer/client/client";
 import type { ValidationResult } from "~/utils/validation";
 import { processUpdate, readEntity, processCreate, type CreateInput } from "./db-utils";
 import type { UserSession } from "./UserSession";

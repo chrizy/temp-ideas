@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateAuditDiff } from "./audit";
-import { GroupSchema, type Group } from "~/models/admin/group";
-import { ClientSchema, type Client } from "~/models/client/client";
+import { GroupSchema, type Group } from "~/models/config/group";
+import { ClientSchema, type Client } from "~/models/customer/client/client";
 
 describe("generateAuditDiff - Group Schema", () => {
     // Helper to create a minimal group

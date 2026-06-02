@@ -1,5 +1,5 @@
 import type { ObjectSchema, SchemaToType, ArraySchema } from "../base_schema_types";
-import { BusinessTypesSchema } from "./group";
+import { BusinessTypesSchema } from "~/models/common/business_types";
 
 export const BusinessTypeSchema = {
     type: "object" as const,
@@ -17,7 +17,8 @@ export const BusinessTypeSchema = {
     }
 } as const satisfies ObjectSchema;
 
-/** Marketplace provider — stored in **Shared D1** (`providers`), not per-account D1. */
+/** Marketplace provider — stored in **Shared D1** (`providers`), not per-account D1.
+ *  `business_types` persisted as JSON array in SQL — see shared_tables.sql. */
 export const ProviderSchema = {
     type: "object" as const,
     fields: {

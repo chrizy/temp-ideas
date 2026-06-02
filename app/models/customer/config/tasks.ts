@@ -1,5 +1,5 @@
 import type { DocumentTypes, DocumentSubType } from "../documents/document_types";
-import type { EnumSchema, SchemaToType } from "../base_schema_types";
+import type { EnumSchema, SchemaToType } from "~/models/base_schema_types";
 
 // Single source of truth for stage enum
 export const StageEnumSchema = {

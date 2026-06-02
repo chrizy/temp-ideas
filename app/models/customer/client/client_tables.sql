@@ -43,7 +43,6 @@ CREATE TABLE client_dependants (
 
 CREATE INDEX idx_client_dependants_account ON client_dependants(account_id);
 CREATE INDEX idx_client_dependants_account_deleted ON client_dependants(account_id, is_deleted);
-CREATE INDEX idx_client_dependants_account_name ON client_dependants(account_id, last_name, first_name);
 
 -- Join table: dependant ↔ client (many-to-many)
 -- Naming: prefer client_dependant_links (_links suffix for all M:N join tables)

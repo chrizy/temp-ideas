@@ -1,6 +1,6 @@
-import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../base_schema_types";
-import { ImportedDataSchema } from "../common/import";
-import { TrackingSchema } from "../common/tracking";
+import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../../base_schema_types";
+import { ImportedDataSchema } from "../../common/import";
+import { TrackingSchema } from "../../common/tracking";
 
 function optionLabel(options: Record<string, string>, value: unknown): string {
     if (value == null || value === "") return "";

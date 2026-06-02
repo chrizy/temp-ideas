@@ -1,7 +1,7 @@
-import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../base_schema_types";
-import { AddressSchema } from "../common/address";
-import { EmailSchema, PhoneSchema } from "../common/PhoneEmail";
-import { TrackingSchema } from "../common/tracking";
+import type { ObjectSchema, SchemaToType, UnionSchema, UnionVariant } from "../../base_schema_types";
+import { AddressSchema } from "../../common/address";
+import { EmailSchema, PhoneSchema } from "../../common/PhoneEmail";
+import { TrackingSchema } from "../../common/tracking";
 import { ClientIncomeSchema } from "./client_income";
 
 // Shared nationality options list (British first)

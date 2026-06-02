@@ -1,8 +1,8 @@
-import type { ObjectSchema, SchemaToType, EnumSchema, ArraySchema } from "../base_schema_types";
-import { AddressSchema } from "../common/address";
-import { TrackingSchema } from "../common/tracking";
+import type { ObjectSchema, SchemaToType, EnumSchema, ArraySchema } from "~/models/base_schema_types";
+import { AddressSchema } from "~/models/common/address";
+import { TrackingSchema } from "~/models/common/tracking";
 import { DocumentSubTypeSchema } from "../documents/document_types";
-import { checkSectionCompletion } from "../../utils/isComplete";
+import { BusinessTypesSchema } from "~/models/common/business_types";
 
 // Enums
 export const GroupTypesIDSchema = {
@@ -15,21 +15,6 @@ export const GroupTypesIDSchema = {
     }
 } as const satisfies EnumSchema;
 
-export const BusinessTypesSchema = {
-    type: "enum" as const,
-    label: "Business Type",
-    options: {
-        residential_mortgage: "Residential Mortgage",
-        btl_mortgage: "BTL Mortgage",
-        equity_release: "Equity Release",
-        bridging: "Bridging",
-        protection_personal: "Protection Personal",
-        protection_business: "Protection Business",
-        household: "Household",
-        pap: "PAP",
-        pmi: "PMI"
-    }
-} as const satisfies EnumSchema;
 
 export const ListTypeSchema = {
     type: "enum" as const,

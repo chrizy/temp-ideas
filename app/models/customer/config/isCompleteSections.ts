@@ -1,5 +1,5 @@
 import type { Schema } from "../base_schema_types";
-import { ClientSchema } from "../client/client";
+import { ClientSchema } from "../customer/client/client";
 
 /**
  * Predefined field requirements organized by section
