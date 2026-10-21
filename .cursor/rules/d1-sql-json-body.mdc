@@ -1,0 +1,45 @@
+---
+description: Cloudflare D1 schema pattern: JSON body + indexed generated columns
+globs: **/*.sql
+alwaysApply: false
+---
+
+# Cloudflare D1: JSON body + generated columns
+
+## Which database
+
+| Database | Holds | Tenancy |
+|----------|--------|---------|
+| **Shared D1** | `customers`, `workers`, `providers` | Platform-wide; one instance for all tenants |
+| **Worker D1** | `users`, `groups`, `clients`, `cases`, `documents`, contacts, … | **One D1 per deployed worker environment**; provisioned when the worker is created |
+
+Customer data never shares a D1 across workers. 
+
+## Row pattern (worker D1 entities)
+
+- Store the full record in `body TEXT NOT NULL` (JSON string).
+- Only create “real” columns for fields you query/filter/sort/index.
+- Expose those fields as `GENERATED ALWAYS AS (json_extract(body, '$.…')) STORED`.
+- Add indexes on generated columns you query frequently.
+- Use `INTEGER PRIMARY KEY AUTOINCREMENT` for surrogate ids unless you have a strong reason not to.
+
+Shared D1 tables (`customers`, `workers`, `providers`) may use relational columns where appropriate; they do not use the document `body` pattern unless you explicitly choose it.
+
+## Example (worker D1 — `clients`)
+
+```sql
+CREATE TABLE clients (
+  client_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+  body TEXT NOT NULL,
+
+  client_type TEXT GENERATED ALWAYS AS (json_extract(body, '$.client_type')) STORED,
+  last_name TEXT GENERATED ALWAYS AS (json_extract(body, '$.last_name')) STORED,
+  is_deleted INTEGER GENERATED ALWAYS AS (json_extract(body, '$.is_deleted')) STORED
+);
+
+CREATE INDEX idx_clients_deleted ON clients(is_deleted);
+CREATE INDEX idx_clients_type ON clients(client_type);
+```
+
+Tracking fields (`version`, `updated_at`, etc.) live **inside** `body` unless you promote them to generated columns for indexing.

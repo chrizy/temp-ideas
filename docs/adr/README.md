@@ -18,6 +18,7 @@ Each ADR is a numbered markdown file:
 | ADR | Title | Status |
 |-----|-------|--------|
 | [0001](./0001-one-d1-database-per-account.md) | One D1 database per customer (account) | Accepted |
+| [0002](./0002-tenant-auth-security.md) | Tenant auth — cookies, single session, device trust, capability cookies | Proposed |
 
 ## Related docs
 

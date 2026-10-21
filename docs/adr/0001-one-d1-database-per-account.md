@@ -27,10 +27,9 @@ Platform registry data (`accounts`, `providers`) remains in a **Shared D1** with
 
 **Each customer account gets its own Account D1 and two account Workers** — **config** and **app** — both bound only to that D1.
 
-- **Shared D1** — `accounts`, `providers` (all tenants; routing metadata only).
+- **Shared D1** — `customers, workers`, `providers` (all tenants; routing metadata only).
 - **Account D1** — `users`, `groups`, `clients`, cases, documents, contacts, etc. (one database per account; never shared).
-- **Account Config Worker** — small bundle: schema migrations, account settings API, internal/platform hooks. No React.
-- **Account App Worker** — CRM bundle: React Router SSR, loaders/actions, UI. No migration runner.
+- **Account App Worker** — worker for APIs, 3x Remix v3 SPAs
 
 Tenant isolation is enforced by **which D1 the Workers are bound to**, not by `WHERE account_id = ?` on shared tables. `account_id` inside JSON (`TrackingSchema`) remains for audit and consistent schemas; it must not be relied on for isolation.
 
@@ -51,7 +50,7 @@ Platform
 |---|-------------------|----------------|
 | **Script name** | `acct-{id}-{slug}-config` | `acct-{id}-{slug}-app` |
 | **Bundle** | Migrations, D1 helpers, JSON config routes | React Router CRM only |
-| **Public route** | Optional: `/api/config/*`, `/internal/*` only | **Yes** — tenant hostname `/*` |
+| **Public route** | Optional: `/api/config/`*, `/internal/*` only | **Yes** — tenant hostname `/`* |
 | **D1 binding** | `ACCOUNT_DB` (migrations, config reads) | `ACCOUNT_DB` (all CRM data) |
 | **R2** | Usually no | Yes (documents) |
 | **Invoked by** | Platform on provision; deploy hook; app via service binding | End users (browser) |
@@ -364,7 +363,7 @@ Optional second route for config API (if not using service binding only):
 }
 ```
 
-For custom domains, attach the custom domain to the **app Worker**. Keep config off the public internet except via service binding or `/api/config/*`.
+For custom domains, attach the custom domain to the **app Worker**. Keep config off the public internet except via service binding or `/api/config/`*.
 
 ### 6. Persist routing metadata (Shared D1)
 
@@ -389,10 +388,10 @@ Authenticated requests: users hit **app Worker** on `hostname`. Platform provisi
 
 ### Two different “versions”
 
-| Name | Scope | Purpose |
-|------|--------|---------|
-| **`schema_migrations`** | Database (DDL) | Tracks which SQL migration files have been applied to **this** D1 |
-| **`body.version`** (`TrackingSchema`) | Row (JSON) | Optimistic concurrency on entity updates — unrelated to DDL |
+| Name                              | Scope          | Purpose                                                           |
+| --------------------------------- | -------------- | ----------------------------------------------------------------- |
+| `schema_migrations`               | Database (DDL) | Tracks which SQL migration files have been applied to **this** D1 |
+| `body.version` (`TrackingSchema`) | Row (JSON)     | Optimistic concurrency on entity updates — unrelated to DDL       |
 
 Do not conflate them.
 
