@@ -55,35 +55,20 @@ Customer CRM remains `my-react-router-app/` (or renames to `crm-app/` later). Sh
 
 ## Authentication (no third-party IdP)
 
-**Requirement:** no external identity providers (no Google, Microsoft Entra, Auth0, Clerk, etc.). Authentication is **first-party**: credentials and sessions owned entirely by the platform Worker and Shared D1.
+Sign-in is specified in [ADR 0002 §11](../adr/0002-tenant-auth-security.md). This console does not invent a second session design.
 
-### Identity model
+**Requirement:** no external identity providers (no Google, Microsoft Entra, Auth0, Clerk, etc.). Credentials and sessions are first-party, on the Admin Worker.
 
-| Store | Who | Where |
-|-------|-----|--------|
-| `platform_operators` | Internal staff who use this console | **Shared D1 only** |
-| `users` + `login_detail` | Firm advisers/staff | **Account D1** per [user.ts](../../app/models/admin/user.ts) — CRM login, not platform login |
+| | Decision |
+|--|----------|
+| **Code** | `packages/auth`, the same package as the tenant API Worker |
+| **Directory** | Admin D1 `operators` (this spec’s operator list). Not a tenant `logins` row |
+| **Everyday sign-in** | Passkey. Cookie `tf_admin_session`, `SameSite=Strict`, idle 15 minutes |
+| **Break-glass** | Password + TOTP, audited, behind “Use recovery”. Not the primary button |
+| **Secret** | `ADMIN_SESSION_SIGNING_KEY`. Never a tenant `SESSION_SIGNING_KEY` |
+| **What this spec still owns** | Roles below, routes, and the bootstrap CLI |
 
-Do **not** reuse account `users` for platform sign-in. Mixing roles complicates audit and violates least privilege.
-
-### Recommended approach: email + password + signed session cookie
-
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| **Password hash** | **bcrypt** (cost 12+) | Already documented for account `login_detail.password`; one library/strategy across the monorepo |
-| **Session** | **HttpOnly, Secure, `SameSite=Strict` cookie** | Standard for Workers; no localStorage tokens |
-| **Session payload** | **Signed, opaque cookie** (HMAC-SHA256 via Web Crypto + `PLATFORM_SESSION_SECRET`) | No server-side session store required for v1; include `operator_id`, `session_version`, `exp` |
-| **Revocation** | Bump `session_version` on `platform_operators` row (password change, disable user) | Invalidates all prior cookies without a session table |
-| **CSRF** | React Router **action** posts + CSRF token in session or double-submit cookie | Required for mutating routes |
-| **Login hardening** | Rate limit by IP + email; lockout after N failures (mirror `login_failed_attempts` on account users) | Mitigate brute force on a small operator set |
-
-Optional later (still no third party):
-
-| Enhancement | Mechanism |
-|-------------|-----------|
-| **TOTP MFA** | `otpauth` secret per operator in Shared D1; verify in login action (library e.g. `otpauth` / RFC 6238) |
-| **Session table** | `platform_sessions` in Shared D1 if you need per-device revoke lists |
-| **Passkeys** | WebAuthn stored in Shared D1 — more work; good phase 3 |
+Do **not** reuse a firm’s `users` for operator sign-in.
 
 ### What we explicitly avoid
 
@@ -91,7 +76,7 @@ Optional later (still no third party):
 |----------|-----|
 | OAuth / SAML / social login | Third-party involvement; not required for a tiny internal user base |
 | JWT in `Authorization` header for browser UI | Harder to secure in browsers than HttpOnly cookies; fine for machine APIs later |
-| Shared password with CRM | Different apps, different threat model |
+| A separate hand-rolled session stack | Drifts from tenant auth. Use the package |
 | Cloudflare Access as **primary** login | Optional **network** layer only (see below); operators should still authenticate to the app |
 
 ### Network layer (defence in depth)
@@ -108,33 +93,12 @@ Auth + IP restrict is appropriate for internal tools.
 
 No self-registration on the public internet.
 
-1. **One-time CLI** (or Wrangler `d1 execute`) inserts the first `platform_operators` row with a bcrypt hash.
-2. Or set `PLATFORM_BOOTSTRAP_EMAIL` + `PLATFORM_BOOTSTRAP_PASSWORD_HASH` as secrets consumed only on first deploy if table is empty (then remove secret).
+1. **One-time CLI** (or Wrangler `d1 execute`) inserts the first `operators` row with a bcrypt hash and a TOTP secret. First login enrolls a passkey ([ADR 0002](../adr/0002-tenant-auth-security.md)).
+2. Or set `PLATFORM_BOOTSTRAP_EMAIL` + `PLATFORM_BOOTSTRAP_PASSWORD_HASH` as secrets consumed only on first deploy if the table is empty (then remove the secret). TOTP enrollment still happens before that password can be used.
 
 Subsequent operators are created by an existing `admin` operator inside the app.
 
-### Login / session flow
-
-```mermaid
-sequenceDiagram
-    participant Op as Operator browser
-    participant W as Platform Worker
-    participant D1 as Shared D1
-
-    Op->>W: POST /login (email, password, csrf)
-    W->>D1: SELECT platform_operators BY email
-    W->>W: bcrypt verify
-    alt invalid
-        W-->>Op: 401 + increment failed_attempts
-    else valid
-        W->>W: Set signed session cookie
-        W-->>Op: 302 → /accounts
-    end
-    Op->>W: GET /accounts (cookie)
-    W->>W: Verify signature + exp + session_version
-    W->>D1: Load operator (optional)
-    W-->>Op: Account list
-```
+Login, cookies, passkeys, and break-glass are the Admin Worker flow in [ADR 0002 §11](../adr/0002-tenant-auth-security.md). Loaders still check `session_version` on `operators` and the role below.
 
 ### Authorization (roles)
 
@@ -142,7 +106,7 @@ sequenceDiagram
 |------|-------------|
 | `viewer` | List/read accounts, view provisioning status |
 | `operator` | Create account, retry provisioning, create training/UAT stacks |
-| `admin` | Manage `platform_operators`, suspend accounts, break-glass actions |
+| `admin` | Manage `operators`, suspend accounts, break-glass actions |
 
 Enforce in **loaders/actions** (return 403) and hide UI controls — not client-only checks.
 
@@ -150,18 +114,20 @@ Enforce in **loaders/actions** (return 403) and hide UI controls — not client-
 
 ## Data model (Shared D1)
 
-### `platform_operators` (new)
+### `operators` (new)
+
+Internal staff directory. The auth package adapts to this table; it is not a tenant `logins` row. Passkeys are a child table, as in ADR 0002.
 
 | Column | Type | Notes |
 |--------|------|--------|
 | `id` | INTEGER PK | |
 | `email` | TEXT UNIQUE | Login identifier |
 | `display_name` | TEXT | |
-| `password_hash` | TEXT | bcrypt |
+| `password_hash` | TEXT | Break-glass only, with TOTP. Not the everyday factor |
 | `role` | TEXT | `viewer` \| `operator` \| `admin` |
 | `is_active` | INTEGER | 0/1 |
 | `session_version` | INTEGER | Increment to revoke sessions |
-| `totp_secret_enc` | TEXT NULL | Optional MFA |
+| `totp_secret_enc` | TEXT | Required for break-glass. Passkeys live in a credentials table (ADR 0002), not in this column |
 | `login_failed_attempts` | INTEGER | |
 | `locked_until` | TEXT NULL | ISO datetime |
 | `created_at` / `updated_at` | TEXT | |
@@ -182,8 +148,8 @@ URLs kebab-case. All routes below require authenticated session except `/login`.
 
 | Method | URL | Purpose |
 |--------|-----|---------|
-| GET | `/login` | Login form |
-| POST | `/login` | Authenticate, set cookie |
+| GET | `/login` | Passkey sign-in. “Use recovery” is password + TOTP |
+| POST | `/login` | Assert passkey, or break-glass, and set `tf_admin_session` |
 | POST | `/logout` | Clear cookie |
 | GET | `/` | Redirect → `/accounts` |
 | GET | `/accounts` | Paginated account list (filters: status, kind, slug) |
@@ -197,8 +163,9 @@ URLs kebab-case. All routes below require authenticated session except `/login`.
 | POST | `/operators/new` | Create operator (admin) |
 | GET | `/operators/{id}/edit` | Edit role / active (admin) |
 | POST | `/operators/{id}` | Update operator (admin) |
-| GET | `/me/password` | Change own password |
+| GET | `/me/password` | Change break-glass password |
 | POST | `/me/password` | Update hash + bump `session_version` |
+| POST | `/me/passkey` | Register a passkey for this operator |
 
 ### Phase 2 — account users (optional)
 
@@ -260,7 +227,7 @@ No global client/case search. Styling can share Tailwind tokens with CRM later.
 
 - [ ] Shared D1 binding only on Platform Worker
 - [ ] Provisioning uses least-privilege Cloudflare API token (D1, Workers, DNS scopes)
-- [ ] Session secret rotatable via Wrangler secret + `session_version` bump
+- [ ] `ADMIN_SESSION_SIGNING_KEY` rotatable via Wrangler secret + `session_version` bump
 - [ ] All mutations POST + CSRF
 - [ ] Audit log for account create / suspend / operator changes
 - [ ] WAF IP allowlist on platform hostname
@@ -273,8 +240,8 @@ No global client/case search. Styling can share Tailwind tokens with CRM later.
 | Topic | Guidance |
 |-------|------------|
 | **Project** | New Worker deploy; do not mount platform routes on account CRM Worker |
-| **Session helper** | `app/server/platform-session.server.ts` — parse/set cookie in loaders |
-| **Secrets** | `PLATFORM_SESSION_SECRET`, `CF_API_TOKEN`, `PLATFORM_INTERNAL_TOKEN` via Wrangler |
+| **Session helper** | `packages/auth` — do not keep a second cookie implementation in the Admin Worker |
+| **Secrets** | `ADMIN_SESSION_SIGNING_KEY`, `CF_API_TOKEN`, `PLATFORM_INTERNAL_TOKEN` via Wrangler |
 | **bcrypt on Workers** | Use a Workers-compatible bcrypt build (wasm) or pre-hash in bootstrap CLI only until runtime hashing is wired |
 | **Testing** | Vitest for session sign/verify; integration test against local D1 with seed operator |
 
@@ -286,7 +253,7 @@ No global client/case search. Styling can share Tailwind tokens with CRM later.
 |---|----------|-------------------|
 | 1 | Monorepo package name (`platform-app/` vs route prefix in same repo)? | Separate `platform-app/` Worker |
 | 2 | Provisioning synchronous in action vs Queue consumer? | Queue for production; sync OK for dev |
-| 3 | MFA required day one? | No; TOTP phase 2 |
+| 3 | MFA required day one? | Yes. Passkey for everyday login; password + TOTP is break-glass only. [ADR 0002](../adr/0002-tenant-auth-security.md) |
 | 4 | Who can open customer CRM from platform UI? | Link only; CRM auth separate |
 
 ---

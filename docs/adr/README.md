@@ -17,12 +17,13 @@ Each ADR is a numbered markdown file:
 
 | ADR | Title | Status |
 |-----|-------|--------|
-| [0001](./0001-one-d1-database-per-account.md) | One D1 database per customer (account) | Accepted |
-| [0002](./0002-tenant-auth-security.md) | Tenant auth — cookies, single session, device trust, capability cookies | Proposed |
+| [0001](./0001-one-d1-database-per-account.md) | One D1 per worker environment | Accepted |
+| [0002](./0002-tenant-auth-security.md) | Auth for tenant apps and the Admin Worker | Proposed |
+| [0003](./0003-e2e-executable-specs.md) | Executable E2E specs (TypeScript DSL) | Proposed |
 
 ## Related docs
 
 - [README.md](../../README.md) — platform overview and provisioning summary
-- [db-diagrams.md](../skills/db-setup/db-diagrams.md) — Shared vs Account D1 trees
+- [db-diagrams.md](../skills/db-setup/db-diagrams.md) — database trees (still the older Shared / Account wording; ADR 0001 is Admin D1 vs Worker D1)
 - [db-tables.md](../skills/db-setup/db-tables.md) — model → table mapping
 - [.cursor/rules/d1-sql-json-body.mdc](../../../.cursor/rules/d1-sql-json-body.mdc) — JSON `body` + generated columns
