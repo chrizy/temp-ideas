@@ -20,6 +20,8 @@ Each ADR is a numbered markdown file:
 | [0001](./0001-one-d1-database-per-account.md) | One D1 per worker environment | Accepted |
 | [0002](./0002-tenant-auth-security.md) | Auth for tenant apps and the Admin Worker | Proposed |
 | [0003](./0003-e2e-executable-specs.md) | Executable E2E specs (TypeScript DSL) | Proposed |
+| [0004](./0004-monorepo-layout.md) | Ideal monorepo layout | Proposed |
+| [0005](./0005-deployment-pipeline.md) | Deployment pipeline (versioned R2 artifacts, operator upgrades) | Proposed |
 
 ## Related docs
 

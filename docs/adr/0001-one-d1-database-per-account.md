@@ -6,7 +6,7 @@
 | **Date** | 2026-06-02 |
 | **Revised** | 2026-10-21 — registry is the Admin Worker and Admin D1; each environment is one API Worker; tenant setup stays on the Admin Worker |
 | **Deciders** | Platform / data architecture |
-| **Related** | [ADR 0002](./0002-tenant-auth-security.md) (cookies, session, CSP, per-worker signing key) |
+| **Related** | [ADR 0002](./0002-tenant-auth-security.md) (cookies, session, CSP, per-worker signing key), [ADR 0005](./0005-deployment-pipeline.md) (versioned artifacts, operator upgrades, `platform_release_id`) |
 
 ## Context
 
@@ -440,7 +440,7 @@ Production applies migrations from the Admin Worker so the SQL stays out of the 
 
 - [ ] Admin Worker provisioning job (D1 → migrate → deploy API Worker → hostname → `workers.status`)
 - [ ] `migrations/worker/` applied only from the Admin Worker; API Worker bundle has no migration SQL
-- [ ] API Worker health check against the schema version required by `platform_release_id`
+- [ ] API Worker health check against the schema version required by `platform_release_id` (see also [ADR 0005](./0005-deployment-pipeline.md))
 - [ ] Align [db-diagrams.md](../skills/db-setup/db-diagrams.md), [db-tables.md](../skills/db-setup/db-tables.md), and the platform spec with Admin D1 / Worker D1
 - [ ] Customer VPN CIDR onboarding and WAF IP list runbook
 - [ ] Optional: Cloudflare Access policy template per tenant hostname

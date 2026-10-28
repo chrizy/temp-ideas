@@ -1,19 +1,20 @@
 ---
-name: db-setup
+
+## name: db-setup
+
 description: >-
   Maps TypeScript models under app/models to Cloudflare D1 tables and describes
   what each stores. Use when adding entities, migrations, server CRUD, provisioning
   account Workers/D1, or answering where data lives (shared vs per-account).
----
 
 # Database setup (typeed-forms)
 
 ## Two-tier storage
 
-| Tier | Deployment | D1 | What lives here |
-|------|------------|-----|-----------------|
-| **Shared platform** | One Worker + one D1 for all tenants | **Shared D1** | `accounts`, `providers` |
-| **Per account (customer)** | One Worker + one D1 **per account** (provisioned on account create) | **Account D1** | Admin, client, case, documents, contacts |
+| Tier                            | Deployment                                                         | D1            | What lives here                                           |
+| ------------------------------- | ------------------------------------------------------------------ | ------------- | --------------------------------------------------------- |
+| **Shared platform**             | One Worker + one D1 for all tenants                                | **Admin D1**  | `customers, wokrers`, `providers`                         |
+| **Per account (tennat/worker)** | One Worker + one D1 **per tennat** (provisioned on account create) | **Worker D1** | config (groups, users), client, case, documents, contacts |
 
 See [README.md](../../../README.md) for provisioning flow and routing.
 
@@ -67,7 +68,7 @@ Firm structure and staff — **per account only**.
 
 ## Client (Account D1)
 
-Fact-find data: **entity tables** (JSON `body` per row) plus **`_links`** tables where one record can belong to **multiple clients** (joint property, couple incomes, etc.).
+Fact-find data: **entity tables** (JSON `body` per row) plus `_links` tables where one record can belong to **multiple clients** (joint property, couple incomes, etc.).
 
 **Convention:** join tables are named `{entity}_links`, not `{entity}_clients`. See [db-diagrams.md](./db-diagrams.md).
 
@@ -191,6 +192,6 @@ Third-party firms and people — schemas exist; tables **planned**.
 
 1. **Shared vs account D1** — `accounts` and `providers` only on shared; everything else on account D1.
 2. New **account** → provision Worker + D1; do not add tenant rows to shared D1 except `accounts`.
-3. Prefer **JSON `body` + generated columns** on account tables; index only filtered fields.
+3. Prefer **JSON** `body` **+ generated columns** on account tables; index only filtered fields.
 4. Extend account `TableName` and `*_tables.sql` together for new top-level entities.
 5. Client financial domains (properties, mortgages, policies): embed vs separate table based on query needs within **that account’s** D1 only.
